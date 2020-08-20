@@ -759,29 +759,131 @@ Inductive binary_tree' :=
 Definition test_number_of_leaves' (candidate: binary_tree' -> nat) : bool :=
   (candidate Leaf' =n= 1)
   &&
-  (candidate (Node' Leaf' 42 Leaf') =n= 2)
+  (candidate (Node' Leaf'
+                    42
+                    Leaf') =n= 2)
   &&
-  (candidate (Node' Leaf' 42 (Node' Leaf' 42 Leaf')) =n= 3)
+  (candidate (Node' Leaf'
+                    42
+                    (Node' Leaf'
+                           42
+                           Leaf')) =n= 3)
   &&
-  (candidate (Node' (Node' Leaf' 42 Leaf') 42 Leaf') =n= 3)
+  (candidate (Node' (Node' Leaf'
+                           42
+                           Leaf')
+                    42
+                    Leaf') =n= 3)
   &&
-  (candidate (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 Leaf')) =n= 4)
+  (candidate (Node' (Node' Leaf'
+                           42
+                           Leaf')
+                    42
+                    (Node' Leaf'
+                           42
+                           Leaf')) =n= 4)
   &&
-  (candidate (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 (Node' Leaf' 42 Leaf'))) =n= 5)
+  (candidate (Node' (Node' Leaf'
+                           42
+                           Leaf')
+                    42 (Node' Leaf'
+                              42 (Node' Leaf'
+                                        42
+                                        Leaf'))) =n= 5)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 Leaf') 42 (Node' Leaf' 42 Leaf')) =n= 5)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           Leaf')
+                    42
+                    (Node' Leaf'
+                           42
+                           Leaf')) =n= 5)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 Leaf') 42 (Node' (Node' Leaf' 42 Leaf') 42 Leaf')) =n= 6)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           Leaf')
+                    42
+                    (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           Leaf')) =n= 6)
   &&
-  (candidate (Node' (Node' Leaf' 42 (Node' Leaf' 42 Leaf')) 42 (Node' Leaf' 42 (Node' Leaf' 42 Leaf'))) =n= 6)
+  (candidate (Node' (Node' Leaf'
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))
+                    42
+                    (Node' Leaf'
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 6)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 Leaf')) 42 (Node' Leaf' 42 (Node' Leaf' 42 Leaf'))) =n= 7)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))
+                    42
+                    (Node' Leaf'
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 7)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 Leaf') 42 (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 Leaf'))) =n= 7)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           Leaf')
+                    42
+                    (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 7)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 Leaf')) 42 (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 Leaf'))) =n= 8)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))
+                    42
+                    (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 8)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 (Node' Leaf' 42 Leaf'))) 42 (Node' Leaf' 42 (Node' Leaf' 42 Leaf'))) =n= 8)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           (Node' Leaf'
+                                  42
+                                  (Node' Leaf'
+                                         42
+                                         Leaf')))
+                    42
+                    (Node' Leaf'
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 8)
   .
 
 Fixpoint number_of_leaves'_v0 (t : binary_tree') : nat :=
@@ -806,29 +908,133 @@ Compute (test_number_of_leaves' number_of_leaves'_v1).
 Definition test_number_of_nodes' (candidate: binary_tree' -> nat) : bool :=
   (candidate Leaf' =n= 0)
   &&
-  (candidate (Node' Leaf' 42 Leaf') =n= 1)
+  (candidate (Node' Leaf'
+                    42
+                    Leaf') =n= 1)
   &&
-  (candidate (Node' Leaf' 42 (Node' Leaf' 42 Leaf')) =n= 2)
+  (candidate (Node' Leaf'
+                    42
+                    (Node' Leaf'
+                           42
+                           Leaf')) =n= 2)
   &&
-  (candidate (Node' (Node' Leaf' 42 Leaf') 42 Leaf') =n= 2)
+  (candidate (Node' (Node' Leaf'
+                           42
+                           Leaf')
+                    42
+                    Leaf') =n= 2)
   &&
-  (candidate (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 Leaf')) =n= 3)
+  (candidate (Node' (Node' Leaf'
+                           42
+                           Leaf')
+                    42
+                    (Node' Leaf'
+                           42
+                           Leaf')) =n= 3)
   &&
-  (candidate (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 (Node' Leaf' 42 Leaf'))) =n= 4)
+  (candidate (Node' (Node' Leaf'
+                           42
+                           Leaf')
+                    42
+                    (Node' Leaf'
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 4)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 Leaf') 42 (Node' Leaf' 42 Leaf')) =n= 4)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           Leaf')
+                    42
+                    (Node' Leaf'
+                           42
+                           Leaf')) =n= 4)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 Leaf') 42 (Node' (Node' Leaf' 42 Leaf') 42 Leaf')) =n= 5)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           Leaf')
+                    42
+                    (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           Leaf')) =n= 5)
   &&
-  (candidate (Node' (Node' Leaf' 42 (Node' Leaf' 42 Leaf')) 42 (Node' Leaf' 42 (Node' Leaf' 42 Leaf'))) =n= 5)
+  (candidate (Node' (Node' Leaf'
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))
+                    42
+                    (Node' Leaf'
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 5)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 Leaf')) 42 (Node' Leaf' 42 (Node' Leaf' 42 Leaf'))) =n= 6)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))
+                    42
+                    (Node' Leaf'
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 6)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 Leaf') 42 (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 Leaf'))) =n= 6)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           Leaf')
+                    42
+                    (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 6)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 Leaf')) 42 (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 Leaf'))) =n= 7)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))
+                    42
+                    (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 7)
   &&
-  (candidate (Node' (Node' (Node' Leaf' 42 Leaf') 42 (Node' Leaf' 42 (Node' Leaf' 42 Leaf'))) 42 (Node' Leaf' 42 (Node' Leaf' 42 Leaf'))) =n= 7)
+  (candidate (Node' (Node' (Node' Leaf'
+                                  42
+                                  Leaf')
+                           42
+                           (Node' Leaf'
+                                  42
+                                  (Node' Leaf'
+                                         42
+                                         Leaf')))
+                    42
+                    (Node' Leaf'
+                           42
+                           (Node' Leaf'
+                                  42
+                                  Leaf'))) =n= 7)
   .
 
 Fixpoint number_of_nodes'_v0 (t : binary_tree') : nat :=
@@ -868,29 +1074,131 @@ Inductive binary_tree'' :=
 Definition test_number_of_leaves'' (candidate: binary_tree'' -> nat) : bool :=
   (candidate (Leaf'' 21) =n= 1)
   &&
-  (candidate (Node'' (Leaf'' 21) 42 (Leaf'' 21)) =n= 2)
+  (candidate (Node'' (Leaf'' 21)
+                    42
+                    (Leaf'' 21)) =n= 2)
   &&
-  (candidate (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) =n= 3)
+  (candidate (Node'' (Leaf'' 21)
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))) =n= 3)
   &&
-  (candidate (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Leaf'' 21)) =n= 3)
+  (candidate (Node'' (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))
+                    42
+                    (Leaf'' 21)) =n= 3)
   &&
-  (candidate (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) =n= 4)
+  (candidate (Node'' (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))) =n= 4)
   &&
-  (candidate (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 5)
+  (candidate (Node'' (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))
+                    42 (Node'' (Leaf'' 21)
+                              42 (Node'' (Leaf'' 21)
+                                        42
+                                        (Leaf'' 21)))) =n= 5)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) =n= 5)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Leaf'' 21))
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))) =n= 5)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Leaf'' 21)) 42 (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Leaf'' 21))) =n= 6)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Leaf'' 21))
+                    42
+                    (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Leaf'' 21))) =n= 6)
   &&
-  (candidate (Node'' (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) 42 (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 6)
+  (candidate (Node'' (Node'' (Leaf'' 21)
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))) =n= 6)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) 42 (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 7)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))) =n= 7)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Leaf'' 21)) 42 (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 7)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Leaf'' 21))
+                    42
+                    (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))) =n= 7)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) 42 (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 8)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))
+                    42
+                    (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))) =n= 8)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) 42 (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 8)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Node'' (Leaf'' 21)
+                                         42
+                                         (Leaf'' 21))))
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))) =n= 8)
   .
 
 Fixpoint number_of_leaves''_v0 (t : binary_tree'') : nat :=
@@ -914,29 +1222,131 @@ Compute (test_number_of_leaves'' number_of_leaves''_v1).
 Definition test_number_of_nodes'' (candidate: binary_tree'' -> nat) : bool :=
   (candidate (Leaf'' 21) =n= 0)
   &&
-  (candidate (Node'' (Leaf'' 21) 42 (Leaf'' 21)) =n= 1)
+  (candidate (Node'' (Leaf'' 21)
+                    42
+                    (Leaf'' 21)) =n= 1)
   &&
-  (candidate (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) =n= 2)
+  (candidate (Node'' (Leaf'' 21)
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))) =n= 2)
   &&
-  (candidate (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Leaf'' 21)) =n= 2)
+  (candidate (Node'' (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))
+                    42
+                    (Leaf'' 21)) =n= 2)
   &&
-  (candidate (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) =n= 3)
+  (candidate (Node'' (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))) =n= 3)
   &&
-  (candidate (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 4)
+  (candidate (Node'' (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))
+                    42 (Node'' (Leaf'' 21)
+                              42 (Node'' (Leaf'' 21)
+                                        42
+                                        (Leaf'' 21)))) =n= 4)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) =n= 4)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Leaf'' 21))
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Leaf'' 21))) =n= 4)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Leaf'' 21)) 42 (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Leaf'' 21))) =n= 5)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Leaf'' 21))
+                    42
+                    (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Leaf'' 21))) =n= 5)
   &&
-  (candidate (Node'' (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) 42 (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 5)
+  (candidate (Node'' (Node'' (Leaf'' 21)
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))) =n= 5)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) 42 (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 6)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))) =n= 6)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Leaf'' 21)) 42 (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 6)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Leaf'' 21))
+                    42
+                    (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))) =n= 6)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21))) 42 (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 7)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))
+                    42
+                    (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))) =n= 7)
   &&
-  (candidate (Node'' (Node'' (Node'' (Leaf'' 21) 42 (Leaf'' 21)) 42 (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) 42 (Node'' (Leaf'' 21) 42 (Node'' (Leaf'' 21) 42 (Leaf'' 21)))) =n= 7)
+  (candidate (Node'' (Node'' (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21))
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Node'' (Leaf'' 21)
+                                         42
+                                         (Leaf'' 21))))
+                    42
+                    (Node'' (Leaf'' 21)
+                           42
+                           (Node'' (Leaf'' 21)
+                                  42
+                                  (Leaf'' 21)))) =n= 7)
   .
 
 Fixpoint number_of_nodes''_v0 (t : binary_tree'') : nat :=
@@ -969,3 +1379,4 @@ Compute (test_number_of_nodes'' number_of_nodes''_v2).
 (* ********** *)
 
 (* end of week-01_functional-programming-in-Coq.v *)
+
