@@ -49,8 +49,49 @@ Notation "A =b= B" :=
 Definition test_eqb_binary_tree_of_nats (candidate : polymorphic_binary_tree nat -> polymorphic_binary_tree nat -> bool) :=
   (candidate (PLeaf nat 1) (PLeaf nat 1) =b= true)
   &&
-  (candidate (PLeaf nat 1) (PLeaf nat 2) =b= false).
-
+  (candidate (PLeaf nat 1) (PLeaf nat 2) =b= false)
+  &&
+  (candidate (PLeaf nat 2) (PLeaf nat 1) =b= false)
+  &&
+  (candidate (PLeaf nat 3)
+             (PNode nat (PLeaf nat 5) (PLeaf nat 2))
+   =b= false)
+  &&
+  (candidate (PNode nat (PLeaf nat 5) (PLeaf nat 2))
+             (PLeaf nat 1)
+   =b= false)
+  &&
+  (candidate (PNode nat (PLeaf nat 6) (PLeaf nat 7))
+             (PNode nat (PLeaf nat 6) (PLeaf nat 7))
+   =b= true)
+  &&
+  (candidate (PNode nat (PLeaf nat 6) (PLeaf nat 7))
+             (PNode nat (PLeaf nat 7) (PLeaf nat 6))
+   =b= false)
+  &&
+  (candidate (PNode nat
+                    (PNode nat (PLeaf nat 8) (PLeaf nat 9))
+                    (PLeaf nat 0))
+             (PNode nat
+                    (PNode nat (PLeaf nat 8) (PLeaf nat 9))
+                    (PLeaf nat 0))
+   =b= true)
+  &&
+  (candidate (PNode nat
+                    (PNode nat (PLeaf nat 8) (PLeaf nat 9))
+                    (PLeaf nat 0))
+             (PNode nat
+                    (PLeaf nat 0)
+                    (PNode nat (PLeaf nat 8) (PLeaf nat 9)))
+   =b= false)
+  &&
+  (candidate (PNode nat
+                    (PNode nat (PLeaf nat 8) (PLeaf nat 9))
+                    (PLeaf nat 0))
+             (PNode nat
+                    (PNode nat (PLeaf nat 9) (PLeaf nat 8))
+                    (PLeaf nat 0))
+   =b= false).
 
 Fixpoint eqb_polymorphic_binary_tree (V : Type) (eqb_V : V -> V -> bool) (t1 t2 : polymorphic_binary_tree V) : bool :=
   match t1 with
@@ -72,8 +113,6 @@ Fixpoint eqb_polymorphic_binary_tree (V : Type) (eqb_V : V -> V -> bool) (t1 t2 
     end
   end.
 
-Check eqb_polymorphic_binary_tree.
-
 Definition eqb_binary_tree_of_nats (t1 t2 : polymorphic_binary_tree nat) : bool :=
   eqb_polymorphic_binary_tree nat beq_nat t1 t2.
 
@@ -83,12 +122,134 @@ Compute (test_eqb_binary_tree_of_nats eqb_binary_tree_of_nats).
 Definition test_beq_nat_bool (candidate : (nat * bool) -> (nat * bool) -> bool) :=
   (candidate (5, true) (5, true) =b= true)
   &&
-  (candidate (5, true) (6, true) =b= false).
+  (candidate (5, true) (6, true) =b= false)
+  &&
+  (candidate (6, true) (5, true) =b= false)
+  &&
+  (candidate (5, true) (5, false) =b= false)
+  &&
+  (candidate (5, false) (5, true) =b= false)
+  &&
+  (candidate (456, false) (456, false) =b= true)
+  &&
+  (candidate (923, false) (923, false) =b= true)
+  &&
+  (candidate (923, false) (923, true) =b= false)
+  &&
+  (candidate (67, true) (67, true) =b= true)
+  &&
+  (candidate (67, true) (76, true) =b= false).
 
 Definition test_eqb_binary_tree_of_nats_and_bools (candidate : polymorphic_binary_tree (nat * bool) -> polymorphic_binary_tree (nat * bool) -> bool) :=
-  (candidate (PLeaf (nat * bool) (1, true)) (PLeaf (nat * bool) (1, true)) =b= true)
+  (candidate (PLeaf (nat * bool) (1, true))
+             (PLeaf (nat * bool) (1, true))
+   =b= true)
   &&
-  (candidate (PLeaf (nat * bool) (1, true))(PLeaf (nat * bool) (2, true)) =b= false).
+  (candidate (PLeaf (nat * bool) (1, true))
+             (PLeaf (nat * bool) (2, true))
+   =b= false)
+  &&
+  (candidate (PLeaf (nat * bool) (2, true))
+             (PLeaf (nat * bool) (1, true))
+   =b= false)
+  &&
+  (candidate (PLeaf (nat * bool) (1, false))
+             (PLeaf (nat * bool) (1, true))
+   =b= false)
+  &&
+  (candidate (PLeaf (nat * bool) (1, true))
+             (PLeaf (nat * bool) (1, false))
+   =b= false)
+  &&
+  (candidate (PLeaf (nat * bool) (1, true))
+             (PNode (nat * bool)
+                    (PLeaf (nat * bool) (1, true))
+                    (PLeaf (nat * bool) (1, true)))
+   =b= false)
+  &&
+  (candidate (PNode (nat * bool)
+                    (PLeaf (nat * bool) (1, true))
+                    (PLeaf (nat * bool) (1, true)))
+             (PLeaf (nat * bool) (1, true))
+   =b= false)
+  &&
+  (candidate (PNode (nat * bool)
+                    (PLeaf (nat * bool) (42, false))
+                    (PLeaf (nat * bool) (67, true)))
+             (PNode (nat * bool)
+                    (PLeaf (nat * bool) (42, false))
+                    (PLeaf (nat * bool) (67, true)))
+   =b= true)
+  &&
+  (candidate (PNode (nat * bool)
+                    (PLeaf (nat * bool) (67, true))
+                    (PLeaf (nat * bool) (42, false)))
+             (PNode (nat * bool)
+                    (PLeaf (nat * bool) (42, false))
+                    (PLeaf (nat * bool) (67, true)))
+   =b= false)
+  &&
+  (candidate (PNode (nat * bool)
+                    (PLeaf (nat * bool) (42, false))
+                    (PLeaf (nat * bool) (67, true)))
+             (PNode (nat * bool)
+                    (PLeaf (nat * bool) (42, false))
+                    (PLeaf (nat * bool) (67, false)))
+   =b= false)
+  &&
+  (candidate (PNode (nat * bool)
+                    (PLeaf (nat * bool) (42, false))
+                    (PLeaf (nat * bool) (67, true)))
+             (PNode (nat * bool)
+                    (PLeaf (nat * bool) (42, false))
+                    (PLeaf (nat * bool) (67, true)))
+   =b= true)
+  &&
+  (candidate (PNode (nat * bool)
+                    (PNode (nat * bool)
+                           (PLeaf (nat * bool) (13, true))
+                           (PLeaf (nat * bool) (48, false)))
+                    (PLeaf (nat * bool) (67, true)))
+             (PNode (nat * bool)
+                    (PLeaf (nat * bool) (13, true))
+                    (PLeaf (nat * bool) (48, false)))
+   =b= false)
+  &&
+  (candidate (PNode (nat * bool)
+                    (PNode (nat * bool)
+                           (PLeaf (nat * bool) (13, true))
+                           (PLeaf (nat * bool) (48, false)))
+                    (PLeaf (nat * bool) (67, true)))
+             (PNode (nat * bool)
+                    (PNode (nat * bool)
+                           (PLeaf (nat * bool) (13, true))
+                           (PLeaf (nat * bool) (48, false)))
+                    (PLeaf (nat * bool) (67, true)))
+   =b= true)
+  &&
+  (candidate (PNode (nat * bool)
+                    (PNode (nat * bool)
+                           (PLeaf (nat * bool) (14, true))
+                           (PLeaf (nat * bool) (48, false)))
+                    (PLeaf (nat * bool) (67, true)))
+             (PNode (nat * bool)
+                    (PNode (nat * bool)
+                           (PLeaf (nat * bool) (13, true))
+                           (PLeaf (nat * bool) (48, false)))
+                    (PLeaf (nat * bool) (67, true)))
+   =b= false)
+  &&
+  (candidate (PNode (nat * bool)
+                    (PNode (nat * bool)
+                           (PLeaf (nat * bool) (48, false))
+                           (PLeaf (nat * bool) (13, true)))
+                    (PLeaf (nat * bool) (67, true)))
+             (PNode (nat * bool)
+                    (PNode (nat * bool)
+                           (PLeaf (nat * bool) (13, true))
+                           (PLeaf (nat * bool) (48, false)))
+                    (PLeaf (nat * bool) (67, true)))
+   =b= false).
 
 Definition beq_nat_bool (p1 p2 : (nat * bool)) : bool :=
   let (n1, b1) := p1 in
@@ -102,11 +263,141 @@ Definition eqb_binary_tree_of_nats_and_bools (t1 t2 : polymorphic_binary_tree (n
 
 Compute (test_eqb_binary_tree_of_nats_and_bools eqb_binary_tree_of_nats_and_bools).
 
-Definition test_eqb_binary_tree_of_binary_trees_of_nats (candidate : polymorphic_binary_tree (polymorphic_binary_tree nat) -> polymorphic_binary_tree (polymorphic_binary_tree nat) -> bool) :=
-  (candidate (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1)) (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1)) =b= true)
+Definition test_eqb_binary_tree_of_binary_trees_of_nats(candidate : polymorphic_binary_tree (polymorphic_binary_tree nat) -> polymorphic_binary_tree (polymorphic_binary_tree nat) -> bool) :=
+  (candidate (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+             (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+   =b= true)
   &&
-  (candidate (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))(PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2)) =b= false).
-
+  (candidate (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+             (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2))
+   =b= false)
+  &&
+  (candidate (PLeaf (polymorphic_binary_tree nat) (PNode nat (PLeaf nat 5) (PLeaf nat 2)))
+             (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2))
+   =b= false)
+  &&
+  (candidate (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2))
+             (PLeaf (polymorphic_binary_tree nat) (PNode nat (PLeaf nat 5) (PLeaf nat 2)))
+   =b= false)
+  &&
+  (candidate (PLeaf (polymorphic_binary_tree nat) (PNode nat (PLeaf nat 5) (PLeaf nat 2)))
+             (PLeaf (polymorphic_binary_tree nat) (PNode nat (PLeaf nat 5) (PLeaf nat 2)))
+   =b= true)
+  &&
+  (candidate (PLeaf (polymorphic_binary_tree nat) (PNode nat (PLeaf nat 5) (PLeaf nat 3)))
+             (PLeaf (polymorphic_binary_tree nat) (PNode nat (PLeaf nat 5) (PLeaf nat 2)))
+   =b= false)
+  &&
+  (candidate (PLeaf (polymorphic_binary_tree nat) (PNode nat (PLeaf nat 5) (PLeaf nat 3)))
+             (PLeaf (polymorphic_binary_tree nat) (PNode nat (PLeaf nat 3) (PLeaf nat 5)))
+   =b= false)
+  &&
+  (candidate (PLeaf (polymorphic_binary_tree nat)
+                    (PNode nat
+                           (PNode nat (PLeaf nat 8) (PLeaf nat 9))
+                           (PLeaf nat 0)))
+             (PLeaf (polymorphic_binary_tree nat)
+                    (PNode nat (PLeaf nat 5) (PLeaf nat 2)))
+   =b= false)
+  &&
+  (candidate (PLeaf (polymorphic_binary_tree nat)
+                    (PNode nat
+                           (PNode nat (PLeaf nat 8) (PLeaf nat 9))
+                           (PLeaf nat 0)))
+             (PLeaf (polymorphic_binary_tree nat)
+                    (PNode nat
+                           (PNode nat (PLeaf nat 9) (PLeaf nat 8))
+                           (PLeaf nat 0)))
+   =b= false)
+  &&
+  (candidate (PLeaf (polymorphic_binary_tree nat)
+                    (PNode nat
+                           (PNode nat (PLeaf nat 8) (PLeaf nat 9))
+                           (PLeaf nat 0)))
+             (PLeaf (polymorphic_binary_tree nat)
+                    (PNode nat
+                           (PLeaf nat 0)
+                           (PNode nat (PLeaf nat 9) (PLeaf nat 8))))
+   =b= false)
+  &&
+  (candidate (PLeaf (polymorphic_binary_tree nat)
+                    (PNode nat
+                           (PNode nat (PLeaf nat 8) (PLeaf nat 9))
+                           (PLeaf nat 0)))
+             (PLeaf (polymorphic_binary_tree nat)
+                    (PNode nat
+                           (PNode nat (PLeaf nat 8) (PLeaf nat 9))
+                           (PLeaf nat 0)))
+   =b= true)
+  &&
+  (candidate (PNode (polymorphic_binary_tree nat)
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 5))
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 6)))
+             (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 5))
+   =b= false)
+  &&
+  (candidate (PNode (polymorphic_binary_tree nat)
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 5))
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 6)))
+             (PNode (polymorphic_binary_tree nat)
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 6))
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 5)))
+   =b= false)
+  &&
+  (candidate (PNode (polymorphic_binary_tree nat)
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 5))
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 6)))
+             (PNode (polymorphic_binary_tree nat)
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 5))
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 6)))
+   =b= true)
+  &&
+  (candidate (PNode (polymorphic_binary_tree nat)
+                    (PNode (polymorphic_binary_tree nat)
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2)))
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 3)))
+             (PNode (polymorphic_binary_tree nat)
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2)))
+   =b= false)
+  &&
+  (candidate (PNode (polymorphic_binary_tree nat)
+                    (PNode (polymorphic_binary_tree nat)
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2)))
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 3)))
+             (PNode (polymorphic_binary_tree nat)
+                    (PNode (polymorphic_binary_tree nat)
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 3)))
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 3)))
+   =b= false)
+  &&
+  (candidate (PNode (polymorphic_binary_tree nat)
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 3))
+                    (PNode (polymorphic_binary_tree nat)
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2))))
+             (PNode (polymorphic_binary_tree nat)
+                    (PNode (polymorphic_binary_tree nat)
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 3)))
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 3)))
+   =b= false)
+  &&
+  (candidate (PNode (polymorphic_binary_tree nat)
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 3))
+                    (PNode (polymorphic_binary_tree nat)
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2))))
+             (PNode (polymorphic_binary_tree nat)
+                    (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 3))
+                    (PNode (polymorphic_binary_tree nat)
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))
+                           (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2))))
+   =b= true).
+    
 Definition eqb_binary_tree_of_binary_trees_of_nats (t1 t2 : polymorphic_binary_tree (polymorphic_binary_tree nat)) : bool :=
   eqb_polymorphic_binary_tree (polymorphic_binary_tree nat) eqb_binary_tree_of_nats t1 t2.
 
