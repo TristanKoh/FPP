@@ -24,31 +24,93 @@ A0191222R
 
 Require Import Arith Bool.
 
+Inductive polymorphic_binary_tree (V : Type) : Type :=
+| PLeaf : V -> polymorphic_binary_tree V
+| PNode : polymorphic_binary_tree V -> polymorphic_binary_tree V -> polymorphic_binary_tree V.
+
 (* ********** *)
 
 (* Exercise 1 *)
 
-(*
-Check (... : polymorphic_binary_tree (nat * bool)).
-*)
 
-(*
-Check (... : polymorphic_binary_tree (polymorphic_binary_tree nat)).
-*)
+Check (PLeaf (nat * bool) (1, true) : polymorphic_binary_tree (nat * bool)).
+
+
+Check (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1) : polymorphic_binary_tree (polymorphic_binary_tree nat)).
+
 
 (* ********** *)
 
 (* Exercise 2 *)
 
-(*
-Definition eqb_binary_tree_of_nats_and_bools ... ... : bool :=
-  ...
-*)
+Notation "A =b= B" :=
+  (eqb A B) (at level 70, right associativity).
 
-(*
-Definition eqb_binary_tree_of_binary_trees_of_nats ... ... : bool :=
-  ...
-*)
+Definition test_eqb_binary_tree_of_nats (candidate : polymorphic_binary_tree nat -> polymorphic_binary_tree nat -> bool) :=
+  (candidate (PLeaf nat 1) (PLeaf nat 1) =b= true)
+  &&
+  (candidate (PLeaf nat 1) (PLeaf nat 2) =b= false).
+
+
+Fixpoint eqb_polymorphic_binary_tree (V : Type) (eqb_V : V -> V -> bool) (t1 t2 : polymorphic_binary_tree V) : bool :=
+  match t1 with
+  | PLeaf _ v1 =>
+    match t2 with
+    | PLeaf _ v2 =>
+      eqb_V v1 v2
+    | PNode _ t11 t12 =>
+      false
+    end
+  | PNode _ t11 t12 =>
+    match t2 with
+    | PLeaf _ v2 =>
+      false
+    | PNode _ t21 t22 =>
+      eqb_polymorphic_binary_tree V eqb_V t11 t21
+      &&
+      eqb_polymorphic_binary_tree V eqb_V t12 t22
+    end
+  end.
+
+Check eqb_polymorphic_binary_tree.
+
+Definition eqb_binary_tree_of_nats (t1 t2 : polymorphic_binary_tree nat) : bool :=
+  eqb_polymorphic_binary_tree nat beq_nat t1 t2.
+
+Compute (test_eqb_binary_tree_of_nats eqb_binary_tree_of_nats).
+
+
+Definition test_beq_nat_bool (candidate : (nat * bool) -> (nat * bool) -> bool) :=
+  (candidate (5, true) (5, true) =b= true)
+  &&
+  (candidate (5, true) (6, true) =b= false).
+
+Definition test_eqb_binary_tree_of_nats_and_bools (candidate : polymorphic_binary_tree (nat * bool) -> polymorphic_binary_tree (nat * bool) -> bool) :=
+  (candidate (PLeaf (nat * bool) (1, true)) (PLeaf (nat * bool) (1, true)) =b= true)
+  &&
+  (candidate (PLeaf (nat * bool) (1, true))(PLeaf (nat * bool) (2, true)) =b= false).
+
+Definition beq_nat_bool (p1 p2 : (nat * bool)) : bool :=
+  let (n1, b1) := p1 in
+  let (n2, b2) := p2 in
+  beq_nat n1 n2 && eqb b1 b2.
+
+Compute (test_beq_nat_bool beq_nat_bool).
+
+Definition eqb_binary_tree_of_nats_and_bools (t1 t2 : polymorphic_binary_tree (nat * bool)) : bool :=
+  eqb_polymorphic_binary_tree (nat * bool) beq_nat_bool t1 t2.
+
+Compute (test_eqb_binary_tree_of_nats_and_bools eqb_binary_tree_of_nats_and_bools).
+
+Definition test_eqb_binary_tree_of_binary_trees_of_nats (candidate : polymorphic_binary_tree (polymorphic_binary_tree nat) -> polymorphic_binary_tree (polymorphic_binary_tree nat) -> bool) :=
+  (candidate (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1)) (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1)) =b= true)
+  &&
+  (candidate (PLeaf (polymorphic_binary_tree nat) (PLeaf nat 1))(PLeaf (polymorphic_binary_tree nat) (PLeaf nat 2)) =b= false).
+
+Definition eqb_binary_tree_of_binary_trees_of_nats (t1 t2 : polymorphic_binary_tree (polymorphic_binary_tree nat)) : bool :=
+  eqb_polymorphic_binary_tree (polymorphic_binary_tree nat) eqb_binary_tree_of_nats t1 t2.
+
+Compute (test_eqb_binary_tree_of_binary_trees_of_nats eqb_binary_tree_of_binary_trees_of_nats).
 
 (* ********** *)
 
