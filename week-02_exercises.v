@@ -647,4 +647,40 @@ Qed.
 
 (* ********** *)
 
+(* Exercise 12 *)
+
+Proposition disjunction_left_distributive :
+  forall A B C : Prop,
+    A \/ (B /\ C) <-> (A \/ B) /\ (A \/ C).
+Proof.
+  intros A B C.
+  split.
+    - intro H_or_B_and_C.
+      destruct H_or_B_and_C as [H_A | [H_B H_C]].
+      split.
+      -- left.
+       exact H_A.
+      -- left.
+       exact H_A.
+      -- split.
+       right.
+       exact H_B.
+       right.
+       exact H_C.
+    - intro H_A_or_B_and_A_or_C.
+      destruct H_A_or_B_and_A_or_C as [H_A_or_B H_A_or_C].
+      destruct H_A_or_B as [H_A | H_B].
+      destruct H_A_or_C as [H_A' | H_C].
+      -- left.
+         exact H_A'.
+      -- left.         
+         exact H_A.
+      -- destruct H_A_or_C as [H_A' | H_C].
+         left.
+         exact H_A'.
+         right.
+         exact (conj H_B H_C).
+Qed.
+    
+  
 (* end of week-02_exercises.v *)
