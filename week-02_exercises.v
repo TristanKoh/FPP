@@ -606,7 +606,9 @@ Proposition pk :
   forall A B : Prop,
     A /\ B -> B /\ A.
 Proof.
-  intros A B [H_A H_B].
+  intros A B.
+  intros H_A_and_B.
+  destruct H_A_and_B as [H_A H_B].
   exact (conj H_B H_A).
 Qed.
 
@@ -681,6 +683,86 @@ Proof.
          right.
          exact (conj H_B H_C).
 Qed.
-    
-  
+
+Proposition disjunction_right_distributive :
+  forall A B C : Prop,
+    ((A /\ B) \/ C) <-> (A \/ C) /\ (B \/ C).
+Proof.
+  intros A B C.
+  split.
+  - intro H_A_and_B_or_C.
+    destruct H_A_and_B_or_C as [[H_A H_B] | H_C].
+    -- split.
+       --- left.
+           exact H_A.
+       --- left.
+           exact H_B.
+    -- split.
+       --- right.
+           exact H_C.
+       --- right.
+           exact H_C.
+  - intro H_A_or_C_and_B_or_C.
+    destruct H_A_or_C_and_B_or_C as [[H_A | ] H_B_or_C].
+    -- destruct H_B_or_C as [H_B | H_C].
+       --- left.
+           exact (conj H_A H_B).
+       --- right.
+           exact H_C.
+    -- destruct H_B_or_C as [H_B | H_C].
+       --- right.
+           exact H.
+       --- right.
+           exact H_C.
+Qed.
+
+(* Exercise 13 *)
+Proposition conjunction_left_distributive :
+  forall A B C : Prop,
+    (A /\ (B \/ C)) <-> (A /\ B) \/ (A /\ C).
+Proof.
+  intros A B C.
+  split.
+  - intro H_A_and_B_or_C.
+    destruct H_A_and_B_or_C as [H_A [H_B | H_C]].
+    -- left.
+       exact (conj H_A H_B).
+    -- right.
+       exact (conj H_A H_C).
+  - intro H_A_and_B_or_A_and_C.
+    destruct H_A_and_B_or_A_and_C as [ [H_A H_B] | [H_A H_C]].
+    -- split.
+       --- exact H_A.
+       --- left.
+           exact H_B.
+    -- split.
+       --- exact H_A.
+       --- right.
+           exact H_C.
+Qed.
+
+Proposition conjunction_right_distributive :
+  forall A B C : Prop,
+    ((A \/ B) /\ C) <-> (A /\ C) \/ (B /\ C).
+Proof.
+  intros A B C.
+  split.
+  - intro H_A_or_B_and_C.
+    destruct H_A_or_B_and_C as [[H_A | H_B] H_C].
+    -- left.
+       exact (conj H_A H_C).
+    -- right.
+       exact (conj H_B H_C).
+  - intro H_A_and_C_or_B_and_C.
+    destruct H_A_and_C_or_B_and_C as [[H_A H_C] | [H_B H_C]].
+    --- split.
+        ---- left.
+             exact H_A.
+        ---- exact H_C.
+    --- split.
+        ---- right.
+             exact H_B.
+        ---- exact H_C.
+Qed.
+        
 (* end of week-02_exercises.v *)
