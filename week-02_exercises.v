@@ -703,15 +703,15 @@ Proof.
        --- right.
            exact H_C.
   - intro H_A_or_C_and_B_or_C.
-    destruct H_A_or_C_and_B_or_C as [[H_A | ] H_B_or_C].
+    destruct H_A_or_C_and_B_or_C as [[H_A | H_C ] H_B_or_C].
     -- destruct H_B_or_C as [H_B | H_C].
        --- left.
            exact (conj H_A H_B).
        --- right.
            exact H_C.
-    -- destruct H_B_or_C as [H_B | H_C].
+    -- destruct H_B_or_C as [H_B | H_C'].
        --- right.
-           exact H.
+           exact H_C.
        --- right.
            exact H_C.
 Qed.
