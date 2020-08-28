@@ -140,6 +140,23 @@ Definition test_beq_nat_bool (candidate : (nat * bool) -> (nat * bool) -> bool) 
   &&
   (candidate (67, true) (76, true) =b= false).
 
+Definition beq_nat_bool (p1 p2 : (nat * bool)) : bool :=
+  let (n1, b1) := p1 in
+  let (n2, b2) := p2 in
+  beq_nat n1 n2 && eqb b1 b2.
+
+Compute (test_beq_nat_bool beq_nat_bool).
+
+Definition beq_pair (V1 : Type) (eqb_V1 : V1 -> V1 -> bool) (V2 : Type) (eqb_V2 : V2 -> V2 -> bool) (p1 p2 : V1 * V2) : bool :=
+  let (v11, v12) := p1 in
+  let (v21, v22) := p2 in
+  eqb_V1 v11 v21 && eqb_V2 v12 v22.
+
+Compute (test_beq_nat_bool (beq_pair nat beq_nat bool eqb)).
+
+
+
+
 Definition test_eqb_binary_tree_of_nats_and_bools (candidate : polymorphic_binary_tree (nat * bool) -> polymorphic_binary_tree (nat * bool) -> bool) :=
   (candidate (PLeaf (nat * bool) (1, true))
              (PLeaf (nat * bool) (1, true))
@@ -251,15 +268,11 @@ Definition test_eqb_binary_tree_of_nats_and_bools (candidate : polymorphic_binar
                     (PLeaf (nat * bool) (67, true)))
    =b= false).
 
-Definition beq_nat_bool (p1 p2 : (nat * bool)) : bool :=
-  let (n1, b1) := p1 in
-  let (n2, b2) := p2 in
-  beq_nat n1 n2 && eqb b1 b2.
-
-Compute (test_beq_nat_bool beq_nat_bool).
+Definition eqb_binary_tree_of_nats_and_bools_old (t1 t2 : polymorphic_binary_tree (nat * bool)) : bool :=
+  eqb_polymorphic_binary_tree (nat * bool) beq_nat_bool t1 t2.
 
 Definition eqb_binary_tree_of_nats_and_bools (t1 t2 : polymorphic_binary_tree (nat * bool)) : bool :=
-  eqb_polymorphic_binary_tree (nat * bool) beq_nat_bool t1 t2.
+  eqb_polymorphic_binary_tree (nat * bool) (beq_pair nat beq_nat bool eqb) t1 t2.
 
 Compute (test_eqb_binary_tree_of_nats_and_bools eqb_binary_tree_of_nats_and_bools).
 
