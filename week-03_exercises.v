@@ -62,9 +62,12 @@ Proof.
     Search (0 + _ = _).
     exact (plus_O_n y).
   - intros x' y.
-    Search (S _ + _ = _ + S _).
-    (* TODO *)
-Abort.
+    Search (S _ + _ = S (_ + _)).
+    rewrite -> (plus_Sn_m x' y).
+    Search (S (_ + _) = _ + S _).
+    rewrite <- (plus_n_Sm x' y). 
+    reflexivity.
+Qed.
 
 
 (* Exercise 9 *)
