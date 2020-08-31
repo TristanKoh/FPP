@@ -219,59 +219,53 @@ Definition recursive_specification_of_addition (add : nat -> nat -> nat) :=
   (forall x' y : nat,
       add (S x') y = S (add x' y)).
 
-
-Lemma recursive_addition_and_tail_recursive_addition_are_equivalent_aux :
-  forall tail_recursive_add : nat -> nat -> nat,
-    tail_recursive_specification_of_addition tail_recursive_add ->
-    forall x y : nat,
-      S (tail_recursive_add x y) = tail_recursive_add x (S y).
+Proposition recursive_and_tail_recursive_specifications_of_addition_are_equivalent :
+  forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add <->
+    recursive_specification_of_addition add.
 Proof.
-  intro tail_recursive_add.
+  intro add.
   unfold tail_recursive_specification_of_addition.
-  intros [H_tail_recursive_add_O H_tail_recursive_add_S].
-  intro x.
-  induction x as [ | x' IHx'].
-  - intro y.
-    rewrite -> (H_tail_recursive_add_O y).
-    rewrite -> (H_tail_recursive_add_O (S y)).
-    reflexivity.
-  - intro y.
-    rewrite -> (H_tail_recursive_add_S x' y).
-    rewrite -> (H_tail_recursive_add_S x' (S y)).
-    rewrite -> (IHx' (S y)).
-    reflexivity.
+  unfold recursive_specification_of_addition.
+  split.
+  - intros [H_add1_O H_add1_S].
+    split. 
+    * exact H_add1_O.
+    * intros x' y.
+      rewrite -> (H_add1_S x' y).
+      revert y.
+      induction x' as [ | x'' IHx''].
+      -- intro y.
+         Check (H_add1_O (S y)).
+         rewrite -> (H_add1_O (S y)).
+         rewrite -> (H_add1_O y).
+         reflexivity.
+      -- intro y.
+         Check (H_add1_S x'' (S y)).
+         rewrite -> (H_add1_S x'' (S y)).
+         rewrite -> (H_add1_S x'' y).
+         rewrite -> (IHx'' (S y)).
+         reflexivity.
+  - intros [H_add2_O H_add2_S].
+    split.
+    * exact H_add2_O.
+    * intros x' y.
+      rewrite -> (H_add2_S x' y).
+      revert y.
+      induction x' as [ | x'' IHx''].
+      -- intro y.
+         Check (H_add2_O (S y)).
+         rewrite -> (H_add2_O (S y)).
+         rewrite -> (H_add2_O y).
+         reflexivity.
+      -- intro y.
+         Check (H_add2_S x'' y).
+         rewrite -> (H_add2_S x'' (S y)).
+         rewrite -> (H_add2_S x'' y).
+         rewrite -> (IHx'' y).
+         reflexivity.
 Qed.
 
-
-Proposition recursive_addition_and_tail_recursive_addition_are_equivalent :
-  forall recursive_add tail_recursive_add : nat -> nat -> nat,
-    recursive_specification_of_addition recursive_add ->
-    tail_recursive_specification_of_addition tail_recursive_add ->
-    forall x y : nat,
-      recursive_add x y = tail_recursive_add x y.
-Proof.
-  intros recursive_add tail_recursive_add.
-  intros S_rec S_tail_rec.
-  assert (S_tmp := S_tail_rec).
-  unfold recursive_specification_of_addition in S_rec.
-  unfold tail_recursive_specification_of_addition in S_tail_rec.
-  destruct S_tail_rec as [H_tail_recursive_add_O H_tail_recursive_add_S].
-  destruct S_rec as [H_recursive_add_O H_recursive_add_S].
-  intro x.
-  induction x as [ | x' IHx'].
-  intro y.
-  - Check (H_tail_recursive_add_O y).
-    rewrite -> (H_tail_recursive_add_O y).
-    Check (H_recursive_add_O y).
-    rewrite -> (H_recursive_add_O y).
-    reflexivity.
-  - intro y.
-    rewrite -> (H_tail_recursive_add_S x' y).
-    rewrite -> (H_recursive_add_S x' y).
-    rewrite -> (IHx').
-    Check (recursive_addition_and_tail_recursive_addition_are_equivalent_aux tail_recursive_add S_tmp x' y).
-    exact (recursive_addition_and_tail_recursive_addition_are_equivalent_aux tail_recursive_add S_tmp x' y).
-Qed.
 
     
 (* Exercise 8 *)
@@ -343,5 +337,39 @@ Proof.
   - exact (H_add_O 0).
   - rewrite -> (H_add_S x' 0).
 Abort.
-  
-  (* end of week-03_exercises.v *)
+
+
+
+
+(* Exercise 6 *)
+
+Proposition recursive_addition_is_associative :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add ->
+    forall x y z : nat,
+      add (add x y) z = add x (add y z).
+Proof.
+  intro add.
+  unfold recursive_specification_of_addition.
+  intros [H_add_O H_add_S].
+  intros x y z.
+  induction x as [ | x' IHx'].
+  - Check (H_add_O y).
+    rewrite -> (H_add_O y).
+    Check (H_add_O (add y z)).
+    rewrite -> (H_add_O (add y z)).
+    reflexivity.
+  - Check (H_add_S x' y).
+    rewrite -> (H_add_S x' y).
+    Check (H_add_S (add x' y) z).
+    rewrite -> (H_add_S (add x' y) z).
+    Check (H_add_S x' (add y z)).
+    rewrite -> (H_add_S x' (add y z)).
+    rewrite -> IHx'.
+    reflexivity.
+Qed.
+
+
+
+
+(* end of week-03_exercises.v *)
