@@ -319,10 +319,32 @@ Proof.
   induction x as [ | x' IHx'].
   - exact (H_add_O 0).
   - exact (H_add_O (S x')).
+    Show Proof.
 Qed.
 
 
-  
+Lemma tail_rec_add_x_Sy :
+    forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add ->
+    forall x y : nat,
+      add x (S y) = S (add x y).
+Proof.
+  intro add.
+  unfold tail_recursive_specification_of_addition.
+  intros [H_add_O H_add_S].
+  intro x.
+  induction x as [ | x' IHx'].
+  - intro y.
+    rewrite -> (H_add_O (S y)).
+    rewrite -> (H_add_O y).
+    reflexivity.
+  - intro y.
+    rewrite -> (H_add_S x' (S y)).
+    rewrite -> (H_add_S x' y).
+    rewrite -> (IHx' (S y)).
+    reflexivity.
+Qed.
+
 Proposition O_is_right_neutral_for_tail_recursive_addition :
   forall add : nat -> nat -> nat,
     tail_recursive_specification_of_addition add ->
@@ -330,15 +352,19 @@ Proposition O_is_right_neutral_for_tail_recursive_addition :
       add x 0 = x.
 Proof.
   intro add.
-  unfold tail_recursive_specification_of_addition.
-  intros [H_add_O H_add_S].
+  intro H_tail_rec_spec_add.
+  assert (_H_tail_rec_spec_add := H_tail_rec_spec_add).
+  unfold tail_recursive_specification_of_addition in H_tail_rec_spec_add.
+  destruct H_tail_rec_spec_add as [H_add_O H_add_S].
   intro x.
   induction x as [ | x' IHx'].
   - exact (H_add_O 0).
   - rewrite -> (H_add_S x' 0).
-Abort.
-
-
+    Check (tail_rec_add_x_Sy add _H_tail_rec_spec_add x' 0).
+    rewrite -> (tail_rec_add_x_Sy add _H_tail_rec_spec_add x' 0).
+    rewrite -> IHx'.
+    reflexivity.
+Qed.
 
 
 (* Exercise 6 *)
@@ -369,6 +395,38 @@ Proof.
     reflexivity.
 Qed.
 
+Proposition tail_recursive_addition_is_associative :
+  forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add ->
+    forall x y z : nat,
+      add (add x y) z = add x (add y z).
+Proof.
+  intro add.
+  intro H_tail_rec_spec_add.
+  assert (_H_tail_rec_spec_add := H_tail_rec_spec_add).
+  unfold tail_recursive_specification_of_addition in H_tail_rec_spec_add.
+  destruct H_tail_rec_spec_add as [H_add_O H_add_S].
+  intros x.
+  induction x as [ | x' IHx'].
+  - intros y z.
+    Check (H_add_O y).
+    rewrite -> (H_add_O y).
+    Check (H_add_O (add y z)).
+    rewrite -> (H_add_O (add y z)).
+    reflexivity.
+  - intros y z.
+    Check (H_add_S x' y).
+    rewrite -> (H_add_S x' y).
+    Check (H_add_S x' (add y z)).
+    rewrite -> (H_add_S x' (add y z)).
+    Check (IHx' (S y) z).
+    rewrite -> (IHx' (S y) z).
+    Check (H_add_S y z).
+    rewrite -> (H_add_S y z).
+    Check (tail_rec_add_x_Sy add _H_tail_rec_spec_add y z).
+    rewrite -> (tail_rec_add_x_Sy add _H_tail_rec_spec_add y z).
+    reflexivity.
+Qed.
 
 
 
