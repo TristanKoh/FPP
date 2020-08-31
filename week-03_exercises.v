@@ -43,11 +43,15 @@ Proof.
   intro x.
   induction x as [ | x' IHx'].
   - intro y.
+    Check (H_add2_O y).
     rewrite -> (H_add2_O y).
     exact (H_add1_O y).
   - intro y.
+    Check (H_add2_S x' y).
     rewrite -> (H_add2_S x' y).
+    Check (H_add1_S x' y).
     rewrite -> (H_add1_S x' y).
+    Check (IHx' (S y)).
     rewrite -> (IHx'(S y)).
     reflexivity.
 Qed.
@@ -63,8 +67,10 @@ Proof.
     exact (plus_O_n y).
   - intros x' y.
     Search (S _ + _ = S (_ + _)).
+    Check (plus_Sn_m x' y).
     rewrite -> (plus_Sn_m x' y).
     Search (S (_ + _) = _ + S _).
+    Check (plus_n_Sm x' y).
     rewrite <- (plus_n_Sm x' y). 
     reflexivity.
 Qed.
@@ -103,12 +109,18 @@ Proof.
   induction t as [n | t1 IHt1 t2 IHt2].
   - revert V n.
     intros V v.
+    Check (H_mirror2_Leaf V).
     rewrite -> (H_mirror2_Leaf V).
+    Check (H_mirror1_Leaf V).
     rewrite -> (H_mirror1_Leaf V).
     reflexivity.
-  - rewrite -> (H_mirror2_Node V t1 t2).
+  - Check (H_mirror2_Node V t1 t2).
+    rewrite -> (H_mirror2_Node V t1 t2).
+    Check (H_mirror1_Node V t1 t2).
     rewrite -> (H_mirror1_Node V t1 t2).
+    Check IHt1.
     rewrite -> IHt1.
+    Check IHt2.
     rewrite -> IHt2.
     reflexivity.
 Qed.    
@@ -140,12 +152,18 @@ Proof.
   induction t as [n | t1 IHt1 t2 IHt2].
   - revert V n.
     intros V v.
+    Check (H_leaves2_Leaf V).
     rewrite -> (H_leaves2_Leaf V).
     rewrite -> (H_leaves1_Leaf V).
+    Check (H_leaves1_Leaf V).
     reflexivity.
-  - rewrite -> (H_leaves2_Node V t1 t2).
+  - Check (H_leaves2_Node V t1 t2).
+    rewrite -> (H_leaves2_Node V t1 t2).
+    Check (H_leaves1_Node V t1 t2).
     rewrite -> (H_leaves1_Node V t1 t2).
+    Check IHt1.
     rewrite -> IHt1.
+    Check IHt2.
     rewrite -> IHt2.
     reflexivity.
 Qed.
@@ -176,14 +194,154 @@ Proof.
   induction t as [n | t1 IHt1 t2 IHt2].
   - revert V n.
     intros V v.
+    Check (H_nodes2_Leaf V).
     rewrite -> (H_nodes2_Leaf V).
+    Check (H_nodes1_Leaf V).
     rewrite -> (H_nodes1_Leaf V).
     reflexivity.
-  - rewrite -> (H_nodes2_Node V t1 t2).
+  - Check (H_nodes2_Node V t1 t2).
+    rewrite -> (H_nodes2_Node V t1 t2).
+    Check (H_nodes1_Node V t1 t2).
     rewrite -> (H_nodes1_Node V t1 t2).
+    Check IHt1.
     rewrite -> IHt1.
+    Check IHt2.
     rewrite -> IHt2.
     reflexivity.
 Qed.
 
-(* end of week-03_exercises.v *)
+
+(* Exercise 5 *)
+Definition recursive_specification_of_addition (add : nat -> nat -> nat) :=
+  (forall y : nat,
+      add O y = y)
+  /\
+  (forall x' y : nat,
+      add (S x') y = S (add x' y)).
+
+
+Lemma recursive_addition_and_tail_recursive_addition_are_equivalent_aux :
+  forall tail_recursive_add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition tail_recursive_add ->
+    forall x y : nat,
+      S (tail_recursive_add x y) = tail_recursive_add x (S y).
+Proof.
+  intro tail_recursive_add.
+  unfold tail_recursive_specification_of_addition.
+  intros [H_tail_recursive_add_O H_tail_recursive_add_S].
+  intro x.
+  induction x as [ | x' IHx'].
+  - intro y.
+    rewrite -> (H_tail_recursive_add_O y).
+    rewrite -> (H_tail_recursive_add_O (S y)).
+    reflexivity.
+  - intro y.
+    rewrite -> (H_tail_recursive_add_S x' y).
+    rewrite -> (H_tail_recursive_add_S x' (S y)).
+    rewrite -> (IHx' (S y)).
+    reflexivity.
+Qed.
+
+
+Proposition recursive_addition_and_tail_recursive_addition_are_equivalent :
+  forall recursive_add tail_recursive_add : nat -> nat -> nat,
+    recursive_specification_of_addition recursive_add ->
+    tail_recursive_specification_of_addition tail_recursive_add ->
+    forall x y : nat,
+      recursive_add x y = tail_recursive_add x y.
+Proof.
+  intros recursive_add tail_recursive_add.
+  intros S_rec S_tail_rec.
+  assert (S_tmp := S_tail_rec).
+  unfold recursive_specification_of_addition in S_rec.
+  unfold tail_recursive_specification_of_addition in S_tail_rec.
+  destruct S_tail_rec as [H_tail_recursive_add_O H_tail_recursive_add_S].
+  destruct S_rec as [H_recursive_add_O H_recursive_add_S].
+  intro x.
+  induction x as [ | x' IHx'].
+  intro y.
+  - Check (H_tail_recursive_add_O y).
+    rewrite -> (H_tail_recursive_add_O y).
+    Check (H_recursive_add_O y).
+    rewrite -> (H_recursive_add_O y).
+    reflexivity.
+  - intro y.
+    rewrite -> (H_tail_recursive_add_S x' y).
+    rewrite -> (H_recursive_add_S x' y).
+    rewrite -> (IHx').
+    Check (recursive_addition_and_tail_recursive_addition_are_equivalent_aux tail_recursive_add S_tmp x' y).
+    exact (recursive_addition_and_tail_recursive_addition_are_equivalent_aux tail_recursive_add S_tmp x' y).
+Qed.
+
+    
+(* Exercise 8 *)
+Proposition O_is_left_neutral_for_recursive_addition :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add ->
+    forall x : nat,
+      add 0 x = x.
+Proof.
+  intro add.
+  unfold recursive_specification_of_addition.
+  intros [H_add_O H_add_S].
+  intro x.
+  induction x as [ | x' IHx'].
+  - Check (H_add_O 0).
+    rewrite -> (H_add_O 0).
+    reflexivity.
+  - rewrite -> (H_add_O (S x')).
+    reflexivity.
+Qed.
+
+
+Proposition O_is_right_neutral_for_recursive_addition :
+  forall add : nat -> nat -> nat,
+    recursive_specification_of_addition add ->
+    forall x : nat,
+      add x 0 = x.
+Proof.
+  intro add.
+  unfold recursive_specification_of_addition.
+  intros [H_add_O H_add_S].
+  intro x.
+  induction x as [ | x' IHx'].
+  - rewrite -> (H_add_O 0).
+    reflexivity.
+  - rewrite -> (H_add_S x' 0). 
+    rewrite -> IHx'.
+    reflexivity.
+Qed.
+
+Proposition O_is_left_neutral_for_tail_recursive_addition :
+  forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add ->
+    forall x : nat,
+      add 0 x = x.
+Proof.
+  intro add.
+  unfold tail_recursive_specification_of_addition.
+  intros [H_add_O H_add_S].
+  intro x.
+  induction x as [ | x' IHx'].
+  - exact (H_add_O 0).
+  - exact (H_add_O (S x')).
+Qed.
+
+
+  
+Proposition O_is_right_neutral_for_tail_recursive_addition :
+  forall add : nat -> nat -> nat,
+    tail_recursive_specification_of_addition add ->
+    forall x : nat,
+      add x 0 = x.
+Proof.
+  intro add.
+  unfold tail_recursive_specification_of_addition.
+  intros [H_add_O H_add_S].
+  intro x.
+  induction x as [ | x' IHx'].
+  - exact (H_add_O 0).
+  - rewrite -> (H_add_S x' 0).
+Abort.
+  
+  (* end of week-03_exercises.v *)
