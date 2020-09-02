@@ -301,6 +301,8 @@ Proof.
     reflexivity.
 Qed.
 
+Require Import Setoid.
+
 Proposition O_is_left_neutral_for_tail_recursive_addition :
   forall add : nat -> nat -> nat,
     tail_recursive_specification_of_addition add ->
@@ -314,8 +316,14 @@ Proof.
   induction x as [ | x' IHx'].
   - exact (H_add_O 0).
   - exact (H_add_O (S x')).
-    Show Proof.
+
+  Restart.
+
+  intro add.
+  rewrite -> (recursive_and_tail_recursive_specifications_of_addition_are_equivalent add).
+  exact (O_is_left_neutral_for_recursive_addition add).
 Qed.
+
 
 
 Lemma tail_rec_add_x_Sy :
@@ -359,6 +367,12 @@ Proof.
     rewrite -> (tail_rec_add_x_Sy add _H_tail_rec_spec_add x' 0).
     rewrite -> IHx'.
     reflexivity.
+
+  Restart.
+
+  intro add.
+  rewrite -> (recursive_and_tail_recursive_specifications_of_addition_are_equivalent add).
+  exact (O_is_right_neutral_for_recursive_addition add).
 Qed.
 
 
@@ -421,6 +435,12 @@ Proof.
     Check (tail_rec_add_x_Sy add _H_tail_rec_spec_add y z).
     rewrite -> (tail_rec_add_x_Sy add _H_tail_rec_spec_add y z).
     reflexivity.
+
+  Restart.
+    
+  intro add.
+  rewrite -> (recursive_and_tail_recursive_specifications_of_addition_are_equivalent add).
+  exact (recursive_addition_is_associative add).
 Qed.
 
 
