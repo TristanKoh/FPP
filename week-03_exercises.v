@@ -45,6 +45,7 @@ Proof.
   - intro y.
     Check (H_add2_O y).
     rewrite -> (H_add2_O y).
+    Check (H_add1_O y).
     exact (H_add1_O y).
   - intro y.
     Check (H_add2_S x' y).
@@ -106,10 +107,8 @@ Proof.
   unfold specification_of_mirror.
   intros [H_mirror1_Leaf H_mirror1_Node] [H_mirror2_Leaf H_mirror2_Node].
   intros V t.
-  induction t as [n | t1 IHt1 t2 IHt2].
-  - revert V n.
-    intros V v.
-    Check (H_mirror2_Leaf V).
+  induction t as [v | t1 IHt1 t2 IHt2].
+  - Check (H_mirror2_Leaf V).
     rewrite -> (H_mirror2_Leaf V).
     Check (H_mirror1_Leaf V).
     rewrite -> (H_mirror1_Leaf V).
@@ -149,10 +148,8 @@ Proof.
   unfold specification_of_number_of_leaves.
   intros [H_leaves1_Leaf H_leaves1_Node] [H_leaves2_Leaf H_leaves2_Node].
   intros V t.
-  induction t as [n | t1 IHt1 t2 IHt2].
-  - revert V n.
-    intros V v.
-    Check (H_leaves2_Leaf V).
+  induction t as [v | t1 IHt1 t2 IHt2].
+  - Check (H_leaves2_Leaf V).
     rewrite -> (H_leaves2_Leaf V).
     rewrite -> (H_leaves1_Leaf V).
     Check (H_leaves1_Leaf V).
@@ -191,10 +188,8 @@ Proof.
   unfold specification_of_number_of_nodes.
   intros [H_nodes1_Leaf H_nodes1_Node] [H_nodes2_Leaf H_nodes2_Node].
   intros V t.
-  induction t as [n | t1 IHt1 t2 IHt2].
-  - revert V n.
-    intros V v.
-    Check (H_nodes2_Leaf V).
+  induction t as [v | t1 IHt1 t2 IHt2].
+  - Check (H_nodes2_Leaf V).
     rewrite -> (H_nodes2_Leaf V).
     Check (H_nodes1_Leaf V).
     rewrite -> (H_nodes1_Leaf V).
