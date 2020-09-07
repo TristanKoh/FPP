@@ -225,33 +225,22 @@ Qed.
 Proposition ladidah :
   forall P1 P2 P3 P4 Q R T U : Prop,
     (P1 \/ P2) \/ (P3 \/ P4) -> (P1 -> Q) -> (P2 -> Q) -> (P3 -> Q) -> (P4 -> Q) -> (Q -> R) -> (R -> T) -> (T -> U) -> U.
+
+  (* Backward proof *)
   intros P1 P2 P3 P4 Q R T U.
   intros H_P1_or_P2_or_P3_or_P4 H_P1_implies_Q H_P2_implies_Q H_P3_implies_Q H_P4_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U.
+  apply H_T_implies_U.
+  apply H_R_implies_T.
+  apply H_Q_implies_R.
   destruct H_P1_or_P2_or_P3_or_P4 as [[H_P1 | H_P2] | [H_P3 | H_P4]].
-  - apply H_T_implies_U.
-    apply H_R_implies_T.
-    apply H_Q_implies_R.
-    apply H_P1_implies_Q.
-    exact H_P1.
-  - apply H_T_implies_U.
-    apply H_R_implies_T.
-    apply H_Q_implies_R.
-    apply H_P2_implies_Q.
-    exact H_P2.
-  - apply H_T_implies_U.
-    apply H_R_implies_T.
-    apply H_Q_implies_R.
-    apply H_P3_implies_Q.
-    exact H_P3.
-  - apply H_T_implies_U.
-    apply H_R_implies_T.
-    apply H_Q_implies_R.
-    apply H_P4_implies_Q.
-    exact H_P4.
-
-
+  - exact (H_P1_implies_Q H_P1).
+  - exact (H_P2_implies_Q H_P2).
+  - exact (H_P3_implies_Q H_P3).
+  - exact (H_P4_implies_Q H_P4).
+    
     Restart.
 
+    (* Forward proof *)
     intros P1 P2 P3 P4 Q R T U.
     intros H_P1_or_P2_or_P3_or_P4 H_P1_implies_Q H_P2_implies_Q H_P3_implies_Q H_P4_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U.
     destruct H_P1_or_P2_or_P3_or_P4 as [[H_P1 | H_P2] | [H_P3 | H_P4]].
@@ -282,9 +271,27 @@ Proposition toodeloo :
   forall P Q R T U1 U2 U3 U4: Prop,
     P -> (P -> Q) -> (Q -> R) -> (R -> T) -> (T -> U1) -> (T -> U2) -> (T -> U3) -> (T -> U4) -> (U1 /\ U2) /\ (U3 /\ U4).
 Proof.
+
+  (* Forward proof *)
   intros P Q R T U1 U2 U3 U4.
   intros H_P H_P_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U1 H_T_implies_U2 H_T_implies_U3 H_T_implies_U4.
+  assert (H_Q := H_P_implies_Q H_P).
+  assert (H_R := H_Q_implies_R H_Q).
+  assert (H_T := H_R_implies_T H_R).
+  assert (H_U1 := H_T_implies_U1 H_T).
+  assert (H_U2 := H_T_implies_U2 H_T).
+  assert (H_U3 := H_T_implies_U3 H_T).
+  assert (H_U4 := H_T_implies_U4 H_T).
   split.
+  - exact (conj H_U1 H_U2).
+  - exact (conj H_U3 H_U4).
+    
+    Restart.
+
+    (* Backwards proof *)
+    intros P Q R T U1 U2 U3 U4.
+    intros H_P H_P_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U1 H_T_implies_U2 H_T_implies_U3 H_T_implies_U4.
+    split.
   - split.
     -- apply H_T_implies_U1.
        apply H_R_implies_T.
