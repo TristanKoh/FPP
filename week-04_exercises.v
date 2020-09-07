@@ -202,6 +202,21 @@ Proof.
     apply H_Q_implies_R.
     apply H_P2_implies_Q.
     exact H_P2.
+
+    Restart.
+
+    intros P1 P2 Q R T U.
+    intros [H_P1 | H_P2] H_P1_implies_Q H_P2_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U.
+  - assert (H_Q := H_P1_implies_Q H_P1).
+    assert (H_R := H_Q_implies_R H_Q).
+    assert (H_T := H_R_implies_T H_R).
+    assert (H_U := H_T_implies_U H_T).
+    exact H_U.
+  - assert (H_Q := H_P2_implies_Q H_P2).
+    assert (H_R := H_Q_implies_R H_Q).
+    assert (H_T := H_R_implies_T H_R).
+    assert (H_U := H_T_implies_U H_T).
+    exact H_U.
 Qed.
 
 
