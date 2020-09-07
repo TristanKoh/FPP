@@ -177,15 +177,12 @@ Proof.
   apply H_T_implies_U.
   apply H_R_implies_T.
   apply H_Q_implies_R.
-  apply H_P1_implies_Q.
   destruct H_P1_or_P2 as [H_P1 | H_P2].
-  - exact H_P1.
-  - assert (H_Q := H_P2_implies_Q H_P2).
-    assert (H_R := H_Q_implies_R H_Q).
-    assert (H_T := H_R_implies_T H_R).
-    assert (H_U := H_T_implies_U H_T).
-    (* TODO *)
-Abort.
+  - apply (H_P1_implies_Q).
+    exact H_P1.
+  - apply (H_P2_implies_Q).
+    exact H_P2.
+Qed.
 
 
 (* Part d *)
@@ -215,7 +212,7 @@ Proposition ladidah :
     (P1 \/ P2) \/ (P3 \/ P4) -> (P1 -> Q) -> (P2 -> Q) -> (P3 -> Q) -> (P4 -> Q) -> (Q -> R) -> (R -> T) -> (T -> U) -> U.
   intros P1 P2 P3 P4 Q R T U.
   intros H_P1_or_P2_or_P3_or_P4 H_P1_implies_Q H_P2_implies_Q H_P3_implies_Q H_P4_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U.
-  destruct H_P1_or_P2_or_P3_or_P4 as [ [H_P1 | H_P2] | [H_P3 | H_P4]].
+  destruct H_P1_or_P2_or_P3_or_P4 as [[H_P1 | H_P2] | [H_P3 | H_P4]].
   - apply H_T_implies_U.
     apply H_R_implies_T.
     apply H_Q_implies_R.
@@ -270,7 +267,7 @@ Proof.
 Qed.
 
 
-
+(* Equational reasoning about arithmetic functions *)
 
 (* Paraphernalia: *)
 
@@ -439,7 +436,16 @@ Property O_is_right_neutral_wrt_add_v1 :
   forall x : nat,
     add_v1 x 0 = x.
 Proof.
-Abort.
+  intro x.
+  induction x as [ | x' IHx'].
+  - Check (fold_unfold_add_v1_O).
+    rewrite -> (fold_unfold_add_v1_O 0).
+    reflexivity.
+  - Check (fold_unfold_add_v1_S).
+    rewrite -> (fold_unfold_add_v1_S x' 0).
+    rewrite -> IHx'.
+    reflexivity.
+Qed.
 
 Property O_is_right_neutral_wrt_add_v2 :
   forall x : nat,
@@ -584,17 +590,66 @@ Qed.
 
 (* Tail-recursive implementation of the multiplication function, using add_v1 *)
 
-(*
+Fixpoint mul_v21_aux (x y a : nat) : nat :=
+  match y with
+  | O =>
+    a
+  | S y' =>
+    mul_v21_aux x y' (add_v1 x a)
+  end.
+
 Definition mul_v21 (x y : nat) : nat :=
-*)
+  mul_v21_aux x y 0.
+
+Compute (test_mul mul_v21).
+
+Lemma fold_unfold_mul_v21_aux_0 :
+  forall x a : nat,
+    mul_v21_aux x 0 a =
+    a.
+Proof.
+  fold_unfold_tactic mul_v21_aux.
+Qed.
+
+Lemma fold_unfold_mul_v21_aux_S :
+  forall x y' a : nat,
+    mul_v21_aux x (S y') a =
+    mul_v21_aux x y' (add_v1 x a).
+Proof.
+  fold_unfold_tactic mul_v21_aux.
+Qed.
 
 (* ***** *)
 
 (* Tail-recursive implementation of the multiplication function, using add_v2 *)
 
-(*
+Fixpoint mul_v22_aux (x y a : nat) : nat :=
+  match y with
+  | O =>
+    a
+  | S y' =>
+    mul_v22_aux x y' (add_v2 x a)
+  end.
+
 Definition mul_v22 (x y : nat) : nat :=
-*)
+  mul_v22_aux x y 0.
+
+Compute (test_mul mul_v22).
+
+Lemma fold_unfold_mul_v22_aux_0 :
+  forall x a : nat,
+    mul_v22_aux x 0 a = a.
+Proof.
+  fold_unfold_tactic mul_v22_aux.
+Qed.
+
+Lemma fold_unfold_mul_v22_aux_S :
+  forall x y' a : nat,
+    mul_v22_aux x (S y') a =
+    mul_v22_aux x y' (add_v2 x a).
+Proof.
+  fold_unfold_tactic mul_v22_aux.
+Qed.
 
 (* ********** *)
 
@@ -606,8 +661,21 @@ Theorem equivalence_of_mul_v11_and_mul_v12 :
   forall i j : nat,
     mul_v11 i j = mul_v12 i j.
 Proof.
-Abort.
-
+  intros i j.               
+  induction i as [ | i' IHi'].
+  - Check (fold_unfold_mul_v11_O).
+    rewrite -> (fold_unfold_mul_v11_O j).
+    rewrite -> (fold_unfold_mul_v12_O j).
+    reflexivity.
+  - Check (fold_unfold_mul_v11_S i' j).
+    rewrite -> (fold_unfold_mul_v11_S i' j).
+    rewrite -> (fold_unfold_mul_v12_S i' j).
+    Check (equivalence_of_add_v1_and_add_v2 (mul_v11 i' j) j).
+    rewrite -> (equivalence_of_add_v1_and_add_v2 (mul_v11 i' j) j).
+    rewrite -> IHi'.
+    reflexivity.
+Qed.
+    
 (* ***** *)
 
 (* ... *)
@@ -618,15 +686,38 @@ Abort.
 
 (* ***** *)
 
-(*
+
+Lemma equivalence_of_mul_v21_aux_and_mul_v22_aux :
+  forall i j a : nat,
+    mul_v21_aux i j a = mul_v22_aux i j a.
+Proof.
+  intros i j.
+  induction j as [ | j' IHj'].
+  - intro a.
+    Check (fold_unfold_mul_v22_aux_0).
+    rewrite -> (fold_unfold_mul_v22_aux_0 i a).
+    rewrite -> (fold_unfold_mul_v21_aux_0 i a).
+    reflexivity.
+  - intro a.
+    Check (fold_unfold_mul_v22_aux_S).
+    rewrite -> (fold_unfold_mul_v22_aux_S i j' a).
+    rewrite -> (fold_unfold_mul_v21_aux_S i j' a).
+    Check (equivalence_of_add_v1_and_add_v2).
+    rewrite -> (equivalence_of_add_v1_and_add_v2 i a).
+    rewrite -> (IHj' (add_v2 i a)).
+    reflexivity.
+Qed.
+    
+
 Theorem equivalence_of_mul_v21_and_mul_v22 :
   forall i j : nat,
     mul_v21 i j = mul_v22 i j.
 Proof.
-Abort.
-*)
-
-
+  intros i j.
+  unfold mul_v22.
+  unfold mul_v21.
+  exact (equivalence_of_mul_v21_aux_and_mul_v22_aux i j 0).
+Qed.
 
 
        
