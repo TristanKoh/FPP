@@ -233,7 +233,35 @@ Proposition ladidah :
     apply H_Q_implies_R.
     apply H_P4_implies_Q.
     exact H_P4.
+
+
+    Restart.
+
+    intros P1 P2 P3 P4 Q R T U.
+    intros H_P1_or_P2_or_P3_or_P4 H_P1_implies_Q H_P2_implies_Q H_P3_implies_Q H_P4_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U.
+    destruct H_P1_or_P2_or_P3_or_P4 as [[H_P1 | H_P2] | [H_P3 | H_P4]].
+  - assert (H_Q := H_P1_implies_Q H_P1).
+    assert (H_R := H_Q_implies_R H_Q).
+    assert (H_T := H_R_implies_T H_R).
+    assert (H_U := H_T_implies_U H_T).
+    exact H_U.
+  -  assert (H_Q := H_P2_implies_Q H_P2).
+     assert (H_R := H_Q_implies_R H_Q).
+     assert (H_T := H_R_implies_T H_R).
+     assert (H_U := H_T_implies_U H_T).
+     exact H_U.
+  -  assert (H_Q := H_P3_implies_Q H_P3).
+     assert (H_R := H_Q_implies_R H_Q).
+     assert (H_T := H_R_implies_T H_R).
+     assert (H_U := H_T_implies_U H_T).
+     exact H_U.
+  -  assert (H_Q := H_P4_implies_Q H_P4).
+     assert (H_R := H_Q_implies_R H_Q).
+     assert (H_T := H_R_implies_T H_R).
+     assert (H_U := H_T_implies_U H_T).
+     exact H_U.
 Qed.
+
 
 Proposition toodeloo :
   forall P Q R T U1 U2 U3 U4: Prop,
@@ -588,6 +616,8 @@ Qed.
 
 (* ***** *)
 
+(* Exercise 27 *)
+
 (* Tail-recursive implementation of the multiplication function, using add_v1 *)
 
 Fixpoint mul_v21_aux (x y a : nat) : nat :=
@@ -621,6 +651,8 @@ Qed.
 
 (* ***** *)
 
+(* Exercise 28 *)
+
 (* Tail-recursive implementation of the multiplication function, using add_v2 *)
 
 Fixpoint mul_v22_aux (x y a : nat) : nat :=
@@ -652,6 +684,8 @@ Proof.
 Qed.
 
 (* ********** *)
+
+(* Exercise 29 *)
 
 (* Equivalence of mul_v11, mul_v12, mul_v21, and mul_v22 *)
 
