@@ -28,25 +28,24 @@ Proposition foo :
 Proof.
   (* Backwards proof *)
   intros P Q R1 R2.
-  intros H_P H_P_implies_Q H_Q_implies_R1_and_Q_implies_R2.
-  destruct H_Q_implies_R1_and_Q_implies_R2 as [H_Q_implies_R1 H_Q_implies_R2].
+  intros H_P H_P_implies_Q [H_Q_implies_R1 H_Q_implies_R2].
   split.
   - apply H_Q_implies_R1.
     apply H_P_implies_Q.
-    exact H_P.
+    apply H_P.
   - apply H_Q_implies_R2.
     apply H_P_implies_Q.
-    exact H_P.
+    apply H_P.
 
     Restart.
     
   (* Forwards proof *)
   intros P Q R1 R2.
-  intros H_P H_P_implies_Q H_Q_implies_R1_and_Q_implies_R2.
-  destruct H_Q_implies_R1_and_Q_implies_R2 as [H_Q_implies_R1 H_Q_implies_R2].
+  intros H_P H_P_implies_Q [H_Q_implies_R1 H_Q_implies_R2].
   assert (H_Q := H_P_implies_Q H_P).
   assert (H_R1 := H_Q_implies_R1 H_Q).
   assert (H_R2 := H_Q_implies_R2 H_Q).
+  Check (conj H_R1 H_R2).
   exact (conj H_R1 H_R2).
 Qed.
 
@@ -66,40 +65,40 @@ Proof.
     apply H_Q_implies_R1.
     apply H_P2_implies_Q.
     apply H_P1_implies_P2.
-    exact H_P1.
+    apply H_P1.
   - apply H_T1_implies_T2.
     apply H_Q_implies_T1.
     apply H_P2_implies_Q.
     apply H_P1_implies_P2.
-    exact H_P1.
+    apply H_P1.
 
-    Restart.
+  Restart.
 
-    (* Split as late as possible *)
-    intros P1 P2 Q R1 T1 R2 T2.
-    intros H_P1 H_P1_implies_P2 H_P2_implies_Q H_Q_implies_R1 H_R1_implies_R2 H_Q_implies_T1 H_T1_implies_T2.
-    assert (H_P2 := H_P1_implies_P2 H_P1).
-    assert (H_Q := H_P2_implies_Q H_P2).
-    assert (H_R1 := H_Q_implies_R1 H_Q).
-    assert (H_R2 := H_R1_implies_R2 H_R1).
-    assert (H_T1 := H_Q_implies_T1 H_Q).
-    assert (H_T2 := H_T1_implies_T2 H_T1).
-    split.
+  (* Split as late as possible *)
+  intros P1 P2 Q R1 T1 R2 T2.
+  intros H_P1 H_P1_implies_P2 H_P2_implies_Q H_Q_implies_R1 H_R1_implies_R2 H_Q_implies_T1 H_T1_implies_T2.
+  assert (H_P2 := H_P1_implies_P2 H_P1).
+  assert (H_Q := H_P2_implies_Q H_P2).
+  assert (H_R1 := H_Q_implies_R1 H_Q).
+  assert (H_R2 := H_R1_implies_R2 H_R1).
+  assert (H_T1 := H_Q_implies_T1 H_Q).
+  assert (H_T2 := H_T1_implies_T2 H_T1).
+  split.
   - exact H_R2.
   - exact H_T2.
 
-    Restart.
+  Restart.
 
-    (* Without splitting at all *)
-    intros P1 P2 Q R1 T1 R2 T2.
-    intros H_P1 H_P1_implies_P2 H_P2_implies_Q H_Q_implies_R1 H_R1_implies_R2 H_Q_implies_T1 H_T1_implies_T2.
-    assert (H_P2 := H_P1_implies_P2 H_P1).
-    assert (H_Q := H_P2_implies_Q H_P2).
-    assert (H_R1 := H_Q_implies_R1 H_Q).
-    assert (H_R2 := H_R1_implies_R2 H_R1).
-    assert (H_T1 := H_Q_implies_T1 H_Q).
-    assert (H_T2 := H_T1_implies_T2 H_T1).
-    exact (conj H_R2 H_T2).
+  (* Without splitting at all *)
+  intros P1 P2 Q R1 T1 R2 T2.
+  intros H_P1 H_P1_implies_P2 H_P2_implies_Q H_Q_implies_R1 H_R1_implies_R2 H_Q_implies_T1 H_T1_implies_T2.
+  assert (H_P2 := H_P1_implies_P2 H_P1).
+  assert (H_Q := H_P2_implies_Q H_P2).
+  assert (H_R1 := H_Q_implies_R1 H_Q).
+  assert (H_R2 := H_R1_implies_R2 H_R1).
+  assert (H_T1 := H_Q_implies_T1 H_Q).
+  assert (H_T2 := H_T1_implies_T2 H_T1).
+  exact (conj H_R2 H_T2).
 Qed.
 
 
@@ -120,25 +119,25 @@ Proof.
     apply H_R_implies_T.
     apply H_Q_implies_R.
     apply H_P_implies_Q.
-    exact H_P.
+    apply H_P.
   - apply H_T_implies_U2.
     apply H_R_implies_T.
     apply H_Q_implies_R.
     apply H_P_implies_Q.
-    exact H_P.
+    apply H_P.
 
-    Restart.
+  Restart.
 
-    (* Using split as late as possible *)
+  (* Using split as late as possible *)
     
-    intros P Q R T U1 U2.
-    intros H_P H_P_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U1 H_T_implies_U2.
-    assert (H_Q := H_P_implies_Q H_P).
-    assert (H_R := H_Q_implies_R H_Q).
-    assert (H_T := H_R_implies_T H_R).
-    assert (H_U1 := H_T_implies_U1 H_T).
-    assert (H_U2 := H_T_implies_U2 H_T).
-    split.
+  intros P Q R T U1 U2.
+  intros H_P H_P_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U1 H_T_implies_U2.
+  assert (H_Q := H_P_implies_Q H_P).
+  assert (H_R := H_Q_implies_R H_Q).
+  assert (H_T := H_R_implies_T H_R).
+  assert (H_U1 := H_T_implies_U1 H_T).
+  assert (H_U2 := H_T_implies_U2 H_T).
+  split.
   - exact H_U1.
   - exact H_U2.
 Qed.
@@ -154,16 +153,16 @@ Proof.
   intros P1 P2 Q R T U.
   intros H_P1_or_P2 H_P1_implies_Q H_P2_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U.
   destruct H_P1_or_P2 as [H_P1 | H_P2].
-  - apply H_T_implies_U.
-    apply H_R_implies_T.
-    apply H_Q_implies_R.
-    apply H_P1_implies_Q.
-    exact H_P1.
-  - apply H_T_implies_U.
-    apply H_R_implies_T.
-    apply H_Q_implies_R.
-    apply H_P2_implies_Q.
-    exact H_P2.
+  - assert (H_Q := H_P1_implies_Q H_P1).
+    assert (H_R := H_Q_implies_R H_Q).
+    assert (H_T := H_R_implies_T H_R).
+    assert (H_U := H_T_implies_U H_T).
+    exact H_U.
+  - assert (H_Q := H_P2_implies_Q H_P2).
+    assert (H_R := H_Q_implies_R H_Q).
+    assert (H_T := H_R_implies_T H_R).
+    assert (H_U := H_T_implies_U H_T).
+    exact H_U.
 Qed.
 
 (* Part b *)
@@ -179,9 +178,9 @@ Proof.
   apply H_Q_implies_R.
   destruct H_P1_or_P2 as [H_P1 | H_P2].
   - apply (H_P1_implies_Q).
-    exact H_P1.
+    apply H_P1.
   - apply (H_P2_implies_Q).
-    exact H_P2.
+    apply H_P2.
 Qed.
 
 
@@ -192,21 +191,6 @@ Proposition baz_dual_early_or_late :
 Proof.
   intros P1 P2 Q R T U.
   intros [H_P1 | H_P2] H_P1_implies_Q H_P2_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U.
-  - apply H_T_implies_U.
-    apply H_R_implies_T.
-    apply H_Q_implies_R.
-    apply H_P1_implies_Q.
-    exact H_P1.
-  - apply H_T_implies_U.
-    apply H_R_implies_T.
-    apply H_Q_implies_R.
-    apply H_P2_implies_Q.
-    exact H_P2.
-
-    Restart.
-
-    intros P1 P2 Q R T U.
-    intros [H_P1 | H_P2] H_P1_implies_Q H_P2_implies_Q H_Q_implies_R H_R_implies_T H_T_implies_U.
   - assert (H_Q := H_P1_implies_Q H_P1).
     assert (H_R := H_Q_implies_R H_Q).
     assert (H_T := H_R_implies_T H_R).
@@ -297,23 +281,23 @@ Proof.
        apply H_R_implies_T.
        apply H_Q_implies_R.
        apply H_P_implies_Q.
-       exact H_P.
+       apply H_P.
     -- apply H_T_implies_U2.
        apply H_R_implies_T.
        apply H_Q_implies_R.
        apply H_P_implies_Q.
-       exact H_P.
+       apply H_P.
   - split.
     -- apply H_T_implies_U3.
        apply H_R_implies_T.
        apply H_Q_implies_R.
        apply H_P_implies_Q.
-       exact H_P.
+       apply H_P.
     -- apply H_T_implies_U4.
        apply H_R_implies_T.
        apply H_Q_implies_R.
        apply H_P_implies_Q.
-       exact H_P.
+       apply H_P.
 Qed.
 
 
