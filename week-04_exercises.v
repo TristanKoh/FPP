@@ -448,23 +448,25 @@ Qed.
 
 (* Neutral (identity) element for addition *)
 
-(* ***** *)
+(* Exercise 17 *)
 
 Property O_is_left_neutral_wrt_add_v1 :
   forall y : nat,
     add_v1 0 y = y.
 Proof.
-Abort.
+  exact (fold_unfold_add_v1_O).
+Qed.
 
-(* ***** *)
+(* Exercise 18 *)
 
 Property O_is_left_neutral_wrt_add_v2 :
   forall y : nat,
     add_v2 0 y = y.
 Proof.
-Abort.
+  exact (fold_unfold_add_v2_O).
+Qed.
 
-(* ***** *)
+(* Exercise 19 *)
 
 Property O_is_right_neutral_wrt_add_v1 :
   forall x : nat,
@@ -472,60 +474,122 @@ Property O_is_right_neutral_wrt_add_v1 :
 Proof.
   intro x.
   induction x as [ | x' IHx'].
-  - Check (fold_unfold_add_v1_O).
-    rewrite -> (fold_unfold_add_v1_O 0).
-    reflexivity.
-  - Check (fold_unfold_add_v1_S).
-    rewrite -> (fold_unfold_add_v1_S x' 0).
+  - exact (fold_unfold_add_v1_O 0).
+  - rewrite -> (fold_unfold_add_v1_S x' 0).
     rewrite -> IHx'.
     reflexivity.
 Qed.
+
+(* Exercise 20 *)
 
 Property O_is_right_neutral_wrt_add_v2 :
   forall x : nat,
     add_v2 x 0 = x.
 Proof.
-Abort.
+  intro x.
+  induction x as [ | x' IHx'].
+  - exact (fold_unfold_add_v2_O 0).
+  - rewrite -> (fold_unfold_add_v2_S x' 0).
+    rewrite -> (about_add_v2 x' 0).
+    rewrite -> IHx'.
+    reflexivity.
+Qed.
+
 
 (* ********** *)
 
 (* Associativity of addition *)
 
-(* ***** *)
+(* Exercise 21 *)
 
 Property add_v1_is_associative :
   forall x y z : nat,
     add_v1 x (add_v1 y z) = add_v1 (add_v1 x y) z.
 Proof.
-Abort.
+  intros x y z.
+  induction x as [ | x' IHx'].
+  - rewrite -> (fold_unfold_add_v1_O (add_v1 y z)).
+    rewrite -> (fold_unfold_add_v1_O y).
+    reflexivity.
+  - rewrite -> (fold_unfold_add_v1_S x' (add_v1 y z)).
+    rewrite -> (fold_unfold_add_v1_S x' y).
+    rewrite -> (fold_unfold_add_v1_S (add_v1 x' y) z).
+    rewrite -> IHx'.
+    reflexivity.
+Qed.
 
-(* ***** *)
+(* Exercise 22 *)
 
 Property add_v2_is_associative :
   forall x y z : nat,
     add_v2 x (add_v2 y z) = add_v2 (add_v2 x y) z.
 Proof.
-Abort.
+  intros x y z.
+  induction x as [ | x' IHx'].
+  - rewrite -> (fold_unfold_add_v2_O (add_v2 y z)).
+    rewrite -> (fold_unfold_add_v2_O y).
+    reflexivity.
+  - rewrite -> (fold_unfold_add_v2_S x' (add_v2 y z)).
+    rewrite -> (fold_unfold_add_v2_S x' y).
+    rewrite -> (about_add_v2 x' (add_v2 y z)).
+    rewrite -> (about_add_v2 x' y).
+    rewrite -> (fold_unfold_add_v2_S (add_v2 x' y) z).
+    rewrite -> (about_add_v2 (add_v2 x' y) z).
+    rewrite -> IHx'.
+    reflexivity.
+Qed.
 
 (* ********** *)
 
 (* Commutativity of addition *)
 
-(* ***** *)
+(* Exercise 23 *)
 
+Lemma about_add_v1 :
+  forall x y : nat,
+    add_v1 x (S y) = S (add_v1 x y).
+Proof.
+  intros x y.
+  induction x as [ | x' IHx'].
+  - rewrite -> (fold_unfold_add_v1_O y).
+    exact (fold_unfold_add_v1_O (S y)).
+  - rewrite -> (fold_unfold_add_v1_S x' (S y)).
+    rewrite -> (fold_unfold_add_v1_S x' y).
+    rewrite -> IHx'.
+    reflexivity.
+Qed.
+    
 Property add_v1_is_commutative :
   forall x y : nat,
     add_v1 x y = add_v1 y x.
 Proof.
-Abort.
+  intros x y.
+  induction x as [ | x' IHx'].
+  - rewrite -> (O_is_right_neutral_wrt_add_v1 y).
+    exact (fold_unfold_add_v1_O y).
+  - rewrite -> (fold_unfold_add_v1_S x' y).
+    rewrite -> (about_add_v1 y x').
+    rewrite -> IHx'.
+    reflexivity.
+Qed.
 
-(* ***** *)
+(* Exercise 24 *)
 
 Property add_v2_is_commutative :
   forall x y : nat,
     add_v2 x y = add_v2 y x.
 Proof.
-Abort.
+  intro x.
+  induction x as [ | x' IHx'].
+  - intro y.
+    rewrite -> (O_is_right_neutral_wrt_add_v2 y).
+    exact (fold_unfold_add_v2_O y).
+  - intro y.
+    rewrite -> (fold_unfold_add_v2_S x' y).
+    rewrite -> (IHx' (S y)).
+    rewrite -> (fold_unfold_add_v2_S y x').
+    reflexivity.
+Qed.
 
 (* ********** *)
 
@@ -627,11 +691,11 @@ Qed.
 (* Tail-recursive implementation of the multiplication function, using add_v1 *)
 
 Fixpoint mul_v21_aux (x y a : nat) : nat :=
-  match y with
+  match x with
   | O =>
     a
-  | S y' =>
-    mul_v21_aux x y' (add_v1 x a)
+  | S x' =>
+    mul_v21_aux x' y (add_v1 y a)
   end.
 
 Definition mul_v21 (x y : nat) : nat :=
@@ -639,18 +703,18 @@ Definition mul_v21 (x y : nat) : nat :=
 
 Compute (test_mul mul_v21).
 
-Lemma fold_unfold_mul_v21_aux_0 :
-  forall x a : nat,
-    mul_v21_aux x 0 a =
+Lemma fold_unfold_mul_v21_aux_O :
+  forall y a : nat,
+    mul_v21_aux 0 y a =
     a.
 Proof.
   fold_unfold_tactic mul_v21_aux.
 Qed.
 
 Lemma fold_unfold_mul_v21_aux_S :
-  forall x y' a : nat,
-    mul_v21_aux x (S y') a =
-    mul_v21_aux x y' (add_v1 x a).
+  forall x' y a : nat,
+    mul_v21_aux (S x') y a =
+    mul_v21_aux x' y (add_v1 y a).
 Proof.
   fold_unfold_tactic mul_v21_aux.
 Qed.
@@ -662,11 +726,11 @@ Qed.
 (* Tail-recursive implementation of the multiplication function, using add_v2 *)
 
 Fixpoint mul_v22_aux (x y a : nat) : nat :=
-  match y with
+  match x with
   | O =>
     a
-  | S y' =>
-    mul_v22_aux x y' (add_v2 x a)
+  | S x' =>
+    mul_v22_aux x' y (add_v2 y a)
   end.
 
 Definition mul_v22 (x y : nat) : nat :=
@@ -674,17 +738,18 @@ Definition mul_v22 (x y : nat) : nat :=
 
 Compute (test_mul mul_v22).
 
-Lemma fold_unfold_mul_v22_aux_0 :
-  forall x a : nat,
-    mul_v22_aux x 0 a = a.
+Lemma fold_unfold_mul_v22_aux_O :
+  forall y a : nat,
+    mul_v22_aux 0 y a =
+    a.
 Proof.
   fold_unfold_tactic mul_v22_aux.
 Qed.
 
 Lemma fold_unfold_mul_v22_aux_S :
-  forall x y' a : nat,
-    mul_v22_aux x (S y') a =
-    mul_v22_aux x y' (add_v2 x a).
+  forall x' y a : nat,
+    mul_v22_aux (S x') y a =
+    mul_v22_aux x' y (add_v2 y a).
 Proof.
   fold_unfold_tactic mul_v22_aux.
 Qed.
@@ -703,62 +768,355 @@ Theorem equivalence_of_mul_v11_and_mul_v12 :
 Proof.
   intros i j.               
   induction i as [ | i' IHi'].
-  - Check (fold_unfold_mul_v11_O).
-    rewrite -> (fold_unfold_mul_v11_O j).
-    rewrite -> (fold_unfold_mul_v12_O j).
-    reflexivity.
-  - Check (fold_unfold_mul_v11_S i' j).
-    rewrite -> (fold_unfold_mul_v11_S i' j).
+  - rewrite -> (fold_unfold_mul_v12_O j).
+    exact (fold_unfold_mul_v11_O j).
+  - rewrite -> (fold_unfold_mul_v11_S i' j).
     rewrite -> (fold_unfold_mul_v12_S i' j).
-    Check (equivalence_of_add_v1_and_add_v2 (mul_v11 i' j) j).
-    rewrite -> (equivalence_of_add_v1_and_add_v2 (mul_v11 i' j) j).
     rewrite -> IHi'.
+    rewrite -> (equivalence_of_add_v1_and_add_v2 (mul_v12 i' j) j).
     reflexivity.
 Qed.
     
 (* ***** *)
 
-(* ... *)
+Lemma about_mul_v21_and_add_v1 :
+  forall x y a n : nat,
+    add_v1 (mul_v21_aux x y a) n = mul_v21_aux x y (add_v1 n a).
+Proof.
+  intros x.
+  induction x as [ | x' IHx'].
+  - intros y a n.
+    rewrite -> (fold_unfold_mul_v21_aux_O y a).
+    rewrite -> (fold_unfold_mul_v21_aux_O y (add_v1 n a)).
+    exact (add_v1_is_commutative a n).
+  - intros y a n.
+    rewrite -> (fold_unfold_mul_v21_aux_S x' y a).
+    rewrite -> (fold_unfold_mul_v21_aux_S x' y (add_v1 n a)).
+    rewrite -> (IHx' y (add_v1 y a) n).
+    rewrite -> (add_v1_is_associative n y a).
+    rewrite -> (add_v1_is_associative y n a).
+    rewrite -> (add_v1_is_commutative n y).
+    reflexivity.
+Qed.
+
+Theorem equivalence_of_mul_v11_and_mul_v21 :
+  forall i j : nat,
+    mul_v11 i j = mul_v21 i j.
+Proof.
+  intros i j.
+  unfold mul_v21.
+  induction i as [ | i' IHi'].
+  - rewrite -> (fold_unfold_mul_v21_aux_O j 0).
+    exact (fold_unfold_mul_v11_O j).
+  - rewrite -> (fold_unfold_mul_v11_S i' j).
+    rewrite -> (fold_unfold_mul_v21_aux_S i' j).
+    rewrite -> IHi'.
+    Check (about_mul_v21_and_add_v1 i' j 0 j).
+    exact (about_mul_v21_and_add_v1 i' j 0 j).
+Qed.
 
 (* ***** *)
-
-(* ... *)
-
-(* ***** *)
-
 
 Lemma equivalence_of_mul_v21_aux_and_mul_v22_aux :
   forall i j a : nat,
     mul_v21_aux i j a = mul_v22_aux i j a.
 Proof.
   intros i j.
-  induction j as [ | j' IHj'].
+  induction i as [ | i' IHi'].
   - intro a.
-    Check (fold_unfold_mul_v22_aux_0).
-    rewrite -> (fold_unfold_mul_v22_aux_0 i a).
-    rewrite -> (fold_unfold_mul_v21_aux_0 i a).
-    reflexivity.
+    rewrite -> (fold_unfold_mul_v22_aux_O j a).
+    exact (fold_unfold_mul_v21_aux_O j a).
   - intro a.
-    Check (fold_unfold_mul_v22_aux_S).
-    rewrite -> (fold_unfold_mul_v22_aux_S i j' a).
-    rewrite -> (fold_unfold_mul_v21_aux_S i j' a).
-    Check (equivalence_of_add_v1_and_add_v2).
-    rewrite -> (equivalence_of_add_v1_and_add_v2 i a).
-    rewrite -> (IHj' (add_v2 i a)).
-    reflexivity.
-Qed.
-    
+    rewrite -> (fold_unfold_mul_v22_aux_S i' j a).
+    rewrite -> (fold_unfold_mul_v21_aux_S i' j a).
+    rewrite -> (equivalence_of_add_v1_and_add_v2 j a).
+    exact (IHi' (add_v2 j a)).
+Qed.    
 
 Theorem equivalence_of_mul_v21_and_mul_v22 :
   forall i j : nat,
     mul_v21 i j = mul_v22 i j.
 Proof.
   intros i j.
-  unfold mul_v22.
   unfold mul_v21.
+  unfold mul_v22.
   exact (equivalence_of_mul_v21_aux_and_mul_v22_aux i j 0).
 Qed.
 
+(* ***** *)
 
-       
+Lemma about_mul_v22_and_add_v2 :
+  forall x y a n : nat,
+    add_v2 (mul_v22_aux x y a) n = mul_v22_aux x y (add_v2 n a).
+Proof.
+  intros x.
+  induction x as [ | x' IHx'].
+  - intros y a n.
+    rewrite -> (fold_unfold_mul_v22_aux_O y a).
+    rewrite -> (fold_unfold_mul_v22_aux_O y (add_v2 n a)).
+    exact (add_v2_is_commutative a n).
+  - intros y a n.
+    rewrite -> (fold_unfold_mul_v22_aux_S x' y a).
+    rewrite -> (fold_unfold_mul_v22_aux_S x' y (add_v2 n a)).
+    rewrite -> (IHx' y (add_v2 y a) n).
+    rewrite -> (add_v2_is_associative n y a).
+    rewrite -> (add_v2_is_associative y n a).
+    rewrite -> (add_v2_is_commutative n y).
+    reflexivity.
+Qed.
+
+
+Theorem equivalence_of_mul_v11_and_mul_v22 :
+  forall i j : nat,
+    mul_v11 i j = mul_v22 i j.
+Proof.
+  intros i j.
+  unfold mul_v22.
+  induction i as [ | i' IHi'].
+  - rewrite -> (fold_unfold_mul_v22_aux_O j 0).
+    exact (fold_unfold_mul_v11_O j).
+  - rewrite -> (fold_unfold_mul_v11_S i' j).
+    rewrite -> (fold_unfold_mul_v22_aux_S i' j).
+    rewrite -> IHi'.
+    rewrite -> (equivalence_of_add_v1_and_add_v2 (mul_v22_aux i' j 0) j).
+    exact (about_mul_v22_and_add_v2 i' j 0 j).
+
+  Restart.
+
+  intros i j.
+  rewrite -> (equivalence_of_mul_v11_and_mul_v21 i j).
+  exact (equivalence_of_mul_v21_and_mul_v22 i j).
+Qed.
+
+
+(* ***** *)
+
+Theorem equivalence_of_mul_v12_and_mul_v21 :
+  forall i j : nat,
+    mul_v12 i j = mul_v21 i j.
+Proof.
+  intros i j.
+  unfold mul_v21.
+  induction i as [ | i' IHi'].
+  - rewrite -> (fold_unfold_mul_v21_aux_O j 0).
+    exact (fold_unfold_mul_v12_O j).
+  - rewrite -> (fold_unfold_mul_v12_S i' j).
+    rewrite -> (fold_unfold_mul_v21_aux_S i' j).
+    rewrite -> IHi'.
+    rewrite <- (equivalence_of_add_v1_and_add_v2 (mul_v21_aux i' j 0) j).
+    exact (about_mul_v21_and_add_v1 i' j 0 j).
+
+  Restart.
+
+  intros i j.
+  rewrite <- (equivalence_of_mul_v11_and_mul_v12 i j).
+  exact (equivalence_of_mul_v11_and_mul_v21 i j).
+Qed.
+
+
+(* ***** *)
+
+Theorem equivalence_of_mul_v12_and_mul_v22 :
+  forall i j : nat,
+    mul_v12 i j = mul_v22 i j.
+Proof.
+  intros i j.
+  unfold mul_v22.
+  induction i as [ | i' IHi'].
+  - rewrite -> (fold_unfold_mul_v12_O j).
+    rewrite -> (fold_unfold_mul_v22_aux_O j 0).
+    reflexivity.
+  - rewrite -> (fold_unfold_mul_v12_S i' j).
+    rewrite -> (fold_unfold_mul_v22_aux_S i' j).
+    rewrite -> IHi'.
+    exact (about_mul_v22_and_add_v2 i' j 0 j).
+
+  Restart.
+
+  intros i j.
+  rewrite <- (equivalence_of_mul_v11_and_mul_v12 i j).
+  rewrite -> (equivalence_of_mul_v11_and_mul_v21 i j).
+  exact (equivalence_of_mul_v21_and_mul_v22 i j).
+Qed.
+
+(* ********** *)
+
+(* 1 is left neutral with respect to multiplication *)
+
+Lemma mul_v12_aux :
+  forall x y': nat,
+  mul_v12 x (S y') = add_v2 (mul_v12 x y') x.
+Proof.
+  intros x y'.
+  induction x as [ | x' IHx'].
+  - rewrite -> (fold_unfold_mul_v12_O (S y')).
+    rewrite -> (fold_unfold_mul_v12_O y').
+    rewrite -> (fold_unfold_add_v2_O 0).
+    reflexivity.
+  - rewrite -> (fold_unfold_mul_v12_S x' (S y')).
+    rewrite -> (fold_unfold_mul_v12_S x' y').
+    rewrite -> IHx'.
+    rewrite -> (about_add_v2 (add_v2 (mul_v12 x' y') x') y').
+    rewrite -> (about_add_v2 (add_v2 (mul_v12 x' y') y') x').
+    rewrite <- (add_v2_is_associative (mul_v12 x' y') x' y').
+    rewrite <- (add_v2_is_associative (mul_v12 x' y') y' x').
+    rewrite <- (add_v2_is_commutative x' y').
+    reflexivity.
+Qed.
+  
+Property SO_is_left_neutral_wrt_mul_v12 :
+  forall y : nat,
+    mul_v12 1 y = y.
+Proof.
+  intro y.
+  induction y as [ | y' IHy'].
+  - exact (fold_unfold_mul_v12_O 1).
+  - rewrite -> (mul_v12_aux 1 y').
+    rewrite -> IHy'.
+    rewrite -> (about_add_v2 y' 0).
+    rewrite -> (O_is_right_neutral_wrt_add_v2 y').
+    reflexivity.
+Qed.
+
+(* ********** *)
+
+(* Multiplication is right-distributive over addition *)
+
+(* Exercise 34 *)
+
+Property mul_v11_is_right_distributive_over_add_v1 :
+  forall x y z : nat,
+    mul_v11 (add_v1 x y) z = add_v1 (mul_v11 x z) (mul_v11 y z).
+Proof.
+  intros x y z.
+  induction x as [ | x' IHx'].
+  - rewrite -> (fold_unfold_add_v1_O y).
+    rewrite -> (fold_unfold_mul_v11_O z).
+    rewrite -> (fold_unfold_add_v1_O (mul_v11 y z)).
+    reflexivity.
+  - rewrite -> (fold_unfold_add_v1_S x' y).
+    rewrite -> (fold_unfold_mul_v11_S x' z).
+    rewrite -> (fold_unfold_mul_v11_S (add_v1 x' y) z).
+    rewrite -> IHx'.
+    rewrite <- (add_v1_is_associative (mul_v11 x' z) (mul_v11 y z) z).
+    rewrite -> (add_v1_is_commutative (mul_v11 y z) z).
+    Check (add_v1_is_associative (mul_v11 x' z) z (mul_v11 y z)).
+    exact (add_v1_is_associative (mul_v11 x' z) z (mul_v11 y z)).
+Qed.
+
+(* ***** *)
+
+Lemma about_mul_v12 :
+  forall x y : nat,
+    mul_v12 (S x) y = add_v2 (mul_v12 x y) y.
+Proof.
+  intro x.
+  induction x as [ | x' IHx'].
+  - intro y.
+    rewrite -> (fold_unfold_mul_v12_O y).
+    rewrite -> (fold_unfold_add_v2_O y).
+    exact (SO_is_left_neutral_wrt_mul_v12 y).
+  - intro y.
+    rewrite -> (fold_unfold_mul_v12_S (S x') y).
+    reflexivity.    
+Qed.
+
+Property mul_v12_is_right_distributive_over_add_v2 :
+  forall x y z : nat,
+    mul_v12 (add_v2 x y) z = add_v2 (mul_v12 x z) (mul_v12 y z).
+Proof.
+  intros x.
+  induction x as [ | x' IHx'].
+  - intros y z.
+    rewrite -> (fold_unfold_add_v2_O y).
+    rewrite -> (fold_unfold_mul_v12_O z).
+    rewrite -> (fold_unfold_add_v2_O (mul_v12 y z)).
+    reflexivity.
+  - intros y z.
+    rewrite -> (fold_unfold_add_v2_S x' y).
+    rewrite -> (IHx' (S y) z).
+    rewrite -> (about_mul_v12 y z).
+    rewrite -> (about_mul_v12 x' z).
+    rewrite -> (add_v2_is_commutative (mul_v12 y z) z).
+    Check (add_v2_is_associative (mul_v12 x' z) z (mul_v12 y z)).
+    exact (add_v2_is_associative (mul_v12 x' z) z (mul_v12 y z)).
+
+  Restart.
+
+  intros x y z.
+  rewrite <- (equivalence_of_add_v1_and_add_v2).
+  rewrite <- (equivalence_of_add_v1_and_add_v2).
+  rewrite <- (equivalence_of_mul_v11_and_mul_v12).
+  rewrite <- (equivalence_of_mul_v11_and_mul_v12).
+  rewrite <- (equivalence_of_mul_v11_and_mul_v12).
+  exact (mul_v11_is_right_distributive_over_add_v1 x y z).
+Qed.
+
+
+Property mul_v21_is_right_distributive_over_add_v1 :
+  forall x y z : nat,
+    mul_v21 (add_v1 x y) z = add_v1 (mul_v21 x z) (mul_v21 y z).
+Proof.
+  intros x y z.
+  unfold mul_v21.
+  induction x as [ | x' IHx'].
+  - rewrite -> (fold_unfold_add_v1_O y).
+    rewrite -> (fold_unfold_mul_v21_aux_O z 0).
+    rewrite -> (fold_unfold_add_v1_O (mul_v21_aux y z 0)).
+    reflexivity.
+  - rewrite -> (fold_unfold_add_v1_S x' y).
+    rewrite -> (fold_unfold_mul_v21_aux_S x' z).
+    rewrite -> (fold_unfold_mul_v21_aux_S (add_v1 x' y) z).
+    rewrite <- (about_mul_v21_and_add_v1 (add_v1 x' y) z 0 z).
+    rewrite <- (about_mul_v21_and_add_v1 x' z 0 z).
+    rewrite -> IHx'.
+    rewrite <- (add_v1_is_associative (mul_v21_aux x' z 0) (mul_v21_aux y z 0) z).
+    rewrite <- (add_v1_is_associative (mul_v21_aux x' z 0) z (mul_v21_aux y z 0)).
+    rewrite -> (add_v1_is_commutative (mul_v21_aux y z 0) z).
+    reflexivity.
+    
+  Restart.
+
+  intros x y z.
+  rewrite <- (equivalence_of_mul_v11_and_mul_v21).
+  rewrite <- (equivalence_of_mul_v11_and_mul_v21).
+  rewrite <- (equivalence_of_mul_v11_and_mul_v21).
+  exact (mul_v11_is_right_distributive_over_add_v1 x y z).
+Qed.
+
+Property mul_v22_is_right_distributive_over_add_v2 :
+  forall x y z : nat,
+    mul_v22 (add_v2 x y) z = add_v2 (mul_v22 x z) (mul_v22 y z).
+Proof.
+  intros x y z.
+  unfold mul_v22.
+  induction x as [ | x' IHx'].
+  - rewrite -> (fold_unfold_add_v2_O y).
+    rewrite -> (fold_unfold_mul_v22_aux_O z 0).
+    rewrite -> (fold_unfold_add_v2_O (mul_v22_aux y z 0)).
+    reflexivity.
+  - rewrite -> (fold_unfold_add_v2_S x' y).
+    rewrite -> (fold_unfold_mul_v22_aux_S x' z).
+    rewrite -> (about_add_v2 x' y).
+    rewrite -> (fold_unfold_mul_v22_aux_S (add_v2 x' y) z).
+    rewrite <- (about_mul_v22_and_add_v2 (add_v2 x' y) z 0 z).
+    rewrite <- (about_mul_v22_and_add_v2 x' z 0 z).
+    rewrite -> IHx'.
+    rewrite <- (add_v2_is_associative (mul_v22_aux x' z 0) (mul_v22_aux y z 0) z).
+    rewrite <- (add_v2_is_associative (mul_v22_aux x' z 0) z (mul_v22_aux y z 0)).
+    rewrite -> (add_v2_is_commutative (mul_v22_aux y z 0) z).
+    reflexivity.
+    
+  Restart.
+
+  intros x y z.
+  rewrite <- (equivalence_of_add_v1_and_add_v2).
+  rewrite <- (equivalence_of_add_v1_and_add_v2).
+  rewrite <- (equivalence_of_mul_v11_and_mul_v22).
+  rewrite <- (equivalence_of_mul_v11_and_mul_v22).
+  rewrite <- (equivalence_of_mul_v11_and_mul_v22).
+  exact (mul_v11_is_right_distributive_over_add_v1 x y z).
+Qed.
+
+
 (* end of week-04_exercises.v *)
