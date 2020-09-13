@@ -159,31 +159,7 @@ Qed.
 
 (* ********** *)
 
-Fixpoint mul_v0_aux (i j : nat) : nat :=
-  match i with
-    | O => 0
-    | S i' => j + (mul_v0_aux i' j)
-  end.
-
-Lemma fold_unfold_mul_v0_aux_O :
-  forall j : nat,
-    mul_v0_aux O j = 0.
-Proof.
-  fold_unfold_tactic mul_v0_aux.
-Qed.
-
-Lemma fold_unfold_mul_v0_aux_S :
-  forall i' j : nat,
-    mul_v0_aux (S i') j = j + (mul_v0_aux i' j).
-Proof.
-  fold_unfold_tactic mul_v0_aux.
-Qed.
-
-Definition mul_v0 (i j : nat) : nat :=
-  mul_v0_aux i j.
-
-Definition mul_v0_alt (i j : nat) : nat :=
-  nat_fold_right nat 0 (fun ih => j + ih) i.
+(* Exercise 2 *)
 
 Definition specification_of_mul (mul : nat -> nat -> nat) :=
   (forall j : nat,
@@ -211,6 +187,29 @@ Proof.
     reflexivity.
 Qed.
 
+Fixpoint mul_v0_aux (i j : nat) : nat :=
+  match i with
+    | O => 0
+    | S i' => j + (mul_v0_aux i' j)
+  end.
+
+Lemma fold_unfold_mul_v0_aux_O :
+  forall j : nat,
+    mul_v0_aux O j = 0.
+Proof.
+  fold_unfold_tactic mul_v0_aux.
+Qed.
+
+Lemma fold_unfold_mul_v0_aux_S :
+  forall i' j : nat,
+    mul_v0_aux (S i') j = j + (mul_v0_aux i' j).
+Proof.
+  fold_unfold_tactic mul_v0_aux.
+Qed.
+
+Definition mul_v0 (i j : nat) : nat :=
+  mul_v0_aux i j.
+
 Proposition mul_v0_safisfies_the_specification_of_mul :
   specification_of_mul mul_v0.
 Proof.
@@ -222,6 +221,8 @@ Proof.
     exact (fold_unfold_mul_v0_aux_S i' j).
 Qed.
 
+Definition mul_v0_alt (i j : nat) : nat :=
+  nat_fold_right nat 0 (fun ih => j + ih) i.
 
 Proposition mul_v0_alt_safisfies_the_specification_of_mul :
   specification_of_mul mul_v0_alt.
@@ -233,7 +234,6 @@ Proof.
   - intros i' j.
     exact (fold_unfold_nat_fold_right_S nat 0 (fun ih => j + ih) i').
 Qed.
-
 
 Proposition mul_v0_and_mul_v0_alt_are_equivalent :
   forall i j : nat,
@@ -385,7 +385,209 @@ Proof.
 Qed.
 
 
+(* Exercise 3 *)
+
+Definition specification_of_evenp (evenp : nat -> bool) :=
+  (evenp O = true)
+  /\
+  (forall n' : nat,
+      evenp (S n') = negb (evenp n')).
+
+Proposition there_is_at_most_one_function_satisfying_the_specification_of_evenp :
+  forall evenp1 evenp2 : nat -> bool,
+    specification_of_evenp evenp1 ->
+    specification_of_evenp evenp2 ->
+    forall n : nat,
+      evenp1 n = evenp2 n.
+Proof.
+  unfold specification_of_evenp.
+  intros evenp1 evenp2 [S1_O S1_S] [S2_O S2_S] n.
+  induction n as [ | n' IHn'].
+  - rewrite -> (S2_O).
+    exact S1_O.
+  - rewrite -> (S1_S n').
+    rewrite -> (S2_S n').
+    rewrite -> IHn'.
+    reflexivity.
+Qed.
+
+Fixpoint evenp_v0_aux (n : nat) : bool :=
+  match n with
+  | O => true
+  | S n' => negb (evenp_v0_aux n')
+  end.
+
+Lemma fold_unfold_evenp_v0_aux_O :
+  evenp_v0_aux O = true.
+Proof.
+  fold_unfold_tactic evenp_v0_aux.
+Qed.
+
+Lemma fold_unfold_evenp_v0_aux_S :
+  forall n' : nat,
+  evenp_v0_aux (S n') = negb (evenp_v0_aux n').
+Proof.
+  fold_unfold_tactic evenp_v0_aux.
+Qed.
+
+Definition evenp_v0 (n : nat) : bool :=
+  evenp_v0_aux n.
+
+Proposition evenp_v0_satisfies_the_specification_of_evenp :
+  specification_of_evenp evenp_v0.
+Proof.
+  unfold specification_of_evenp, evenp_v0.
+  split.
+  - exact (fold_unfold_evenp_v0_aux_O).
+  - intro n'.
+    exact (fold_unfold_evenp_v0_aux_S n').
+Qed.
+
+Fixpoint evenp_v1_aux (n : nat) (a : bool) : bool :=
+  match n with
+  | O => a
+  | S n' => evenp_v1_aux n' (negb a)
+  end.
+
+Lemma fold_unfold_evenp_v1_aux_O :
+  forall a : bool,
+  evenp_v1_aux O a = a.
+Proof.
+  fold_unfold_tactic evenp_v1_aux.
+Qed.
+
+Lemma fold_unfold_evenp_v1_aux_S :
+  forall (n' : nat) (a : bool),
+  evenp_v1_aux (S n') a = evenp_v1_aux n' (negb a).
+Proof.
+  fold_unfold_tactic evenp_v1_aux.
+Qed.
+
+Definition evenp_v1 (n : nat) : bool :=
+  evenp_v1_aux n true.
+
+Lemma about_evenp_v1 :
+  forall (n' : nat) (a : bool),
+    evenp_v1_aux n' (negb a) = negb (evenp_v1_aux n' a).
+Proof.
+  intro n'.
+  induction n' as [ | n'' IHn''].
+  - intro a.
+    rewrite -> (fold_unfold_evenp_v1_aux_O a).
+    exact (fold_unfold_evenp_v1_aux_O (negb a)).
+  - intro a.
+    rewrite -> (fold_unfold_evenp_v1_aux_S n'' a).
+    rewrite -> (fold_unfold_evenp_v1_aux_S n'' (negb a)).
+    exact (IHn'' (negb a)).
+Qed.
+
+Proposition evenp_v1_satisfies_the_specification_of_evenp :
+  specification_of_evenp evenp_v1.
+Proof.
+  unfold specification_of_evenp, evenp_v1.
+  split.
+  - exact (fold_unfold_evenp_v1_aux_O true).
+  - intro n'.
+    rewrite -> (fold_unfold_evenp_v1_aux_S n' true).
+    exact (about_evenp_v1 n' true).
+Qed.
+
+Proposition evenp_v0_and_evenp_v1_are_equivalent :
+  forall n : nat,
+    evenp_v0 n = evenp_v1 n.
+Proof.
+  intro n.
+  unfold evenp_v0, evenp_v1.
+  induction n as [ | n' IHn''].
+  - rewrite -> (fold_unfold_evenp_v1_aux_O true).
+    exact (fold_unfold_evenp_v0_aux_O).
+  - rewrite -> (fold_unfold_evenp_v0_aux_S n').
+    rewrite -> (fold_unfold_evenp_v1_aux_S n' true).
+    rewrite -> IHn''.
+    symmetry.
+    exact (about_evenp_v1 n' true).
+Qed.
+
+Definition evenp_v0_alt (n : nat) : bool :=
+  nat_fold_right bool true negb n.
+
+Proposition evenp_v0_alt_satisfies_the_specification_of_evenp :
+  specification_of_evenp evenp_v0_alt.
+Proof.
+  unfold specification_of_evenp, evenp_v0_alt.
+  split.
+  - exact (fold_unfold_nat_fold_right_O bool true negb).
+  - intro n'.
+    exact (fold_unfold_nat_fold_right_S bool true negb n').
+Qed.
+
+Proposition evenp_v0_and_evenp_v0_alt_are_equivalent :
+  forall n : nat,
+    evenp_v0 n = evenp_v0_alt n.
+Proof.
+  intro n.
+  Check (there_is_at_most_one_function_satisfying_the_specification_of_evenp
+           evenp_v0
+           evenp_v0_alt
+           evenp_v0_satisfies_the_specification_of_evenp
+           evenp_v0_alt_satisfies_the_specification_of_evenp
+           n).
+  exact (there_is_at_most_one_function_satisfying_the_specification_of_evenp
+           evenp_v0
+           evenp_v0_alt
+           evenp_v0_satisfies_the_specification_of_evenp
+           evenp_v0_alt_satisfies_the_specification_of_evenp
+           n).
+Qed.
   
+Definition evenp_v1_alt (n : nat) : bool :=
+  nat_fold_left bool true negb n.
+
+
+Proposition evenp_v1_alt_satisfies_the_specification_of_evenp :
+  specification_of_evenp evenp_v1_alt.
+Proof.
+  unfold specification_of_evenp, evenp_v1_alt.
+  split.
+  - exact (fold_unfold_nat_fold_left_O bool true negb).
+  - intro n'.
+    rewrite -> (fold_unfold_nat_fold_left_S bool true negb n').
+    rewrite -> (about_nat_fold_left bool true negb n').
+    reflexivity.
+Qed.
+
+Proposition evenp_v1_and_evenp_v1_alt_are_equivalent :
+  forall n : nat,
+    evenp_v1 n = evenp_v1_alt n.
+Proof.
+  intro n.
+  Check (there_is_at_most_one_function_satisfying_the_specification_of_evenp
+           evenp_v1
+           evenp_v1_alt
+           evenp_v1_satisfies_the_specification_of_evenp
+           evenp_v1_alt_satisfies_the_specification_of_evenp
+           n).
+  exact (there_is_at_most_one_function_satisfying_the_specification_of_evenp
+           evenp_v1
+           evenp_v1_alt
+           evenp_v1_satisfies_the_specification_of_evenp
+           evenp_v1_alt_satisfies_the_specification_of_evenp
+           n).
+Qed.
+
+Corollary evenp_v0_and_evep_v1_are_equivalent_alt :
+  forall n : nat,
+    evenp_v0 n = evenp_v1 n.
+Proof.
+  intro n.
+  rewrite -> (evenp_v0_and_evenp_v0_alt_are_equivalent).
+  rewrite -> (evenp_v1_and_evenp_v1_alt_are_equivalent).
+  unfold evenp_v0_alt, evenp_v1_alt.
+  rewrite -> (folding_left_and_right bool true negb n).
+  reflexivity.
+Qed.
+
+
 (* ********** *)
 
 (* end of week-05_exercises.v *)
