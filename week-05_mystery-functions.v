@@ -438,28 +438,22 @@ Definition unit_test_for_mystery_function_16 (mf : nat -> nat * nat) :=
   (mf 3 =pnn= (2, 3)).
 
 
-Fixpoint mystery_function_16_aux (n : nat) : nat :=
+Fixpoint mystery_function_16_aux (n : nat) : (nat * nat) :=
   match n with
-  | 0 => 0
+  | 0 => (0 , 1)
   | S n' =>
-    match n' with
-    | 0 => 1
-    | S n'' =>
-      mystery_function_16_aux n' + mystery_function_16_aux n''
-    end
+    let (fib_n' , fib_n) := (mystery_function_16_aux n')
+    in (fib_n, fib_n' + fib_n)
   end.
 
-Definition mystery_function_16 (n : nat) : (nat * nat) :=
-  (mystery_function_16_aux n, mystery_function_16_aux (n + 1)).
-
+Definition mystery_function_16 (n : nat) :=
+  mystery_function_16_aux n.
 
 Compute (unit_test_for_mystery_function_16 mystery_function_16).
 
-
 Lemma fold_unfold_mystery_function_16_aux_O :
-  forall n : nat,
     mystery_function_16_aux O =
-    0.
+    (0 , 1).
 Proof.
   fold_unfold_tactic mystery_function_16_aux.
 Qed.
@@ -467,10 +461,8 @@ Qed.
 Lemma fold_unfold_mystery_function_16_aux_S :
   forall n' : nat,
     mystery_function_16_aux (S n') =
-    match n' with
-    | 0 => 1
-    | S n'' => mystery_function_16_aux n' + mystery_function_16_aux n''
-    end.
+    let (fib_n', fib_n) := (mystery_function_16_aux n')
+    in (fib_n, fib_n' + fib_n).
 Proof.
   fold_unfold_tactic mystery_function_16_aux.
 Qed.  
@@ -482,14 +474,14 @@ Proof.
   - split.
     -- unfold mystery_function_16.
        rewrite -> fold_unfold_mystery_function_16_aux_O.
-       Search (0 + _ = _).
-       rewrite -> (plus_O_n 1).
-       Check (fold_unfold_mystery_function_16_aux_S 0).
-       rewrite -> (fold_unfold_mystery_function_16_aux_S 0).
        reflexivity.
-       (* TODO *)
-Abort.
-
+    -- intro n'.
+       unfold mystery_function_16.
+       Check (fold_unfold_mystery_function_16_aux_S).
+       rewrite -> (fold_unfold_mystery_function_16_aux_S n').
+       reflexivity.
+Qed.       
+       
 
 (* ********** *)
 
@@ -502,6 +494,18 @@ Definition specification_of_mystery_function_17 (mf : nat -> nat) :=
   /\
   forall p q : nat,
     mf (S (p + q)) = mf (S p) * mf (S q) + mf p * mf q.
+
+Definition unit_test_for_mystery_function_17 (mf : nat -> nat) :=
+  (mf 0 =n= 0)
+  &&
+  (mf 1 =n= 1)
+  &&
+  (mf 2 =n= 1)
+  &&
+  (mf (S (0 + 0)) =n= (mf (S 0)) * (mf (S 0)) + mf 0 * mf 0)
+  &&
+  (mf (S (0 + 1)) =n= (mf (S 0)) * (mf (S 1)) + mf 0 * mf 1).
+
 
 (*
 Theorem there_are_zero_mystery_functions_17 :
@@ -590,6 +594,7 @@ Proof.
   destruct H_f_S as [H_f_2 H_f_S].
   destruct H_g_S as [H_g_1 H_g_S].
   destruct H_g_S as [H_g_2 H_g_S].
+  (* assert ((f n) = (g n) /\ (f (S n)) = (g (S n))). *)
   induction n as [ | n' IHn'].
   - rewrite -> H_f_0.
     rewrite -> H_g_0.
@@ -605,8 +610,112 @@ Proof.
       -- 
 Abort.
 
+Fixpoint mystery_function_17_aux (n : nat) : nat :=
+  match n with
+  | 0 => 0
+  | S n' =>
+    match n' with
+    | 0 => 1
+    | S n'' =>
+      mystery_function_17_aux n' + mystery_function_17_aux n''
+    end
+  end.
+
+Definition mystery_function_17 (n : nat) : nat :=
+  mystery_function_17_aux n.
+
+Compute (unit_test_for_mystery_function_17 mystery_function_17).
+
+Lemma fold_unfold_mystery_function_17_aux_O :
+    mystery_function_17_aux O =
+    0.
+Proof.
+  fold_unfold_tactic mystery_function_17_aux.
+Qed.
+
+Lemma fold_unfold_mystery_function_17_aux_1 :
+    mystery_function_17_aux 1 =
+    1.
+Proof.
+  fold_unfold_tactic mystery_function_17_aux.
+Qed.
+
+Lemma fold_unfold_mystery_function_17_aux_S :
+  forall n'' : nat,
+    mystery_function_17_aux (S (S n'')) =  mystery_function_17_aux (S n'') + mystery_function_17_aux n''.
+Proof.
+  fold_unfold_tactic mystery_function_17_aux.
+Qed.
 
 
+Theorem there_is_at_least_one_mystery_functions_17 :
+  specification_of_mystery_function_17 mystery_function_17.
+Proof.
+  unfold specification_of_mystery_function_17.
+  split.
+  - unfold mystery_function_17.
+    rewrite -> (fold_unfold_mystery_function_17_aux_O).
+    reflexivity.
+  - split.
+    -- unfold mystery_function_17.
+       Check (fold_unfold_mystery_function_17_aux_1).
+       rewrite -> (fold_unfold_mystery_function_17_aux_1).
+       reflexivity.
+    -- split.
+       --- unfold mystery_function_17.
+           rewrite -> (fold_unfold_mystery_function_17_aux_S 0).
+           rewrite -> (fold_unfold_mystery_function_17_aux_O).
+           rewrite -> (fold_unfold_mystery_function_17_aux_1).
+           Search (_ + 0 = _).
+           exact (Nat.add_0_r 1).
+    --- intro p.
+        induction p as [ | p' IHp'].
+        ---- intro q.
+             unfold mystery_function_17.
+             rewrite -> (Nat.add_0_l q).
+             rewrite -> (fold_unfold_mystery_function_17_aux_O).
+             rewrite -> (fold_unfold_mystery_function_17_aux_1).
+             Search (0 * _ = _).
+             rewrite -> (Nat.mul_0_l (mystery_function_17_aux q)).
+             Search (1 * _ = _).
+             rewrite -> (Nat.mul_1_l (mystery_function_17_aux (S q))).
+             Search (_ + 0 = _).
+             rewrite -> (Nat.add_0_r (mystery_function_17_aux (S q))).
+             reflexivity.
+        ---- intro q.
+             unfold mystery_function_17.
+             Search ( _  = S _).
+             rewrite <- (Nat.add_succ_r (S p') (q)).
+             Check (Nat.add_succ_l).
+             rewrite -> (Nat.add_succ_l (p') (S q)).
+             unfold mystery_function_17 in IHp'.
+             rewrite -> (IHp' (S q)).
+             Check (fold_unfold_mystery_function_17_aux_S p').
+             rewrite -> (fold_unfold_mystery_function_17_aux_S p').
+             rewrite -> (fold_unfold_mystery_function_17_aux_S q).
+             Search (_ * ( _ + _)).
+             rewrite -> (Nat.mul_add_distr_l
+                           (mystery_function_17_aux (S p'))
+                           (mystery_function_17_aux (S q))
+                           (mystery_function_17_aux q)).
+             Check (Nat.mul_add_distr_r).
+             rewrite -> (Nat.mul_add_distr_r
+                           (mystery_function_17_aux (S p'))
+                           (mystery_function_17_aux p')
+                           (mystery_function_17_aux (S q))).
+             Search (_ + _ + _).
+             rewrite -> (Nat.add_shuffle0
+                           ((mystery_function_17_aux (S p')) *
+                            (mystery_function_17_aux (S q)))
+                           ((mystery_function_17_aux (S p') *
+                             (mystery_function_17_aux q)))
+                           ((mystery_function_17_aux p') *
+                            (mystery_function_17_aux (S q)))).
+             reflexivity.
+Qed.
+
+
+                         
 (* ********** *)
 
 Definition specification_of_mystery_function_18 (mf : nat -> nat) :=
@@ -633,71 +742,99 @@ Definition unit_test_for_mystery_function_18 (mf : nat -> nat) :=
   (mf 2 + mf 5 =n= 2 * mf 4).
 
 
-Fixpoint mystery_function_18 (n : nat) : nat :=
+Fixpoint mystery_function_18_aux (n : nat) : nat :=
   match n with
   | 0 => 0
   | S n' =>
     match n' with
     | 0 => 1
     | S n'' =>
-      mystery_function_18 n' + mystery_function_18 n''
+      mystery_function_18_aux n' + mystery_function_18_aux n''
     end
   end.
 
+Definition mystery_function_18 (n : nat) : nat :=
+  mystery_function_18_aux n.
+  
 Compute (unit_test_for_mystery_function_18 mystery_function_18).
 
-Lemma fold_unfold_mystery_function_18_O :
-  forall n : nat,
-    mystery_function_18 O =
+Lemma fold_unfold_mystery_function_18_aux_O :
+    mystery_function_18_aux O =
     0.
 Proof.
-  fold_unfold_tactic mystery_function_18.
+  fold_unfold_tactic mystery_function_18_aux.
 Qed.
 
-Lemma fold_unfold_mystery_function_18_S :
+Lemma fold_unfold_mystery_function_18_aux_S :
   forall n' : nat,
-    mystery_function_18 (S n') =
+    mystery_function_18_aux (S n') =
     match n' with
     | 0 => 1
-    | S n'' => mystery_function_18 n' + mystery_function_18 n''
+    | S n'' => mystery_function_18_aux n' + mystery_function_18_aux n''
     end.
 Proof.
-  fold_unfold_tactic mystery_function_18.
+  fold_unfold_tactic mystery_function_18_aux.
 Qed.
 
 
+Lemma there_is_at_least_one_mystery_function_18_aux :
+  forall x : nat,
+    x + x = 2 * x.
+Proof.
+  intro x.
+  induction x as [ | x' IHx'].
+  - reflexivity.
+  - Search (S _).
+Abort.
+
+    
 Theorem there_is_at_least_one_mystery_function_18 :
   specification_of_mystery_function_18 mystery_function_18.
 Proof.
   unfold specification_of_mystery_function_18.
   - split.
-    -- rewrite -> fold_unfold_mystery_function_18_O.
+    -- unfold mystery_function_18.
+       rewrite -> fold_unfold_mystery_function_18_aux_O.
        reflexivity.
-
-       Restart.
-
-       unfold specification_of_mystery_function_18, mystery_function_18.
     -- split.
-       reflexivity.
+       --- unfold mystery_function_18.
+           Check (fold_unfold_mystery_function_18_aux_S 0).
+           exact (fold_unfold_mystery_function_18_aux_S 0).
        --- split.
-       ---- reflexivity.
-       ---- split.
-            ----- Search (_ + 0 = _).
-             rewrite -> (Nat.add_0_r 1).
-             reflexivity.
-             ----- intro n'''.
-             induction n''' as [ | n''' IHn'''].
-             ------ rewrite -> (Nat.add_0_r 1).
-             rewrite -> (Nat.add_0_l (1 + 1)).
-             Search (1 + _ = S _).
-             rewrite -> (Nat.add_1_l 1).
-             Search (_ * 1 = _).
-             rewrite -> (Nat.mul_1_r 2).
-             reflexivity.
-             ------ induction n''' as [ | n'''' IHn''''].
-             ------- rewrite -> (Nat.add_0_r 1).
-Abort.             
+           ---- unfold mystery_function_18.
+                Check (fold_unfold_mystery_function_18_aux_S 1).
+                rewrite -> (fold_unfold_mystery_function_18_aux_S 1).
+                rewrite -> (fold_unfold_mystery_function_18_aux_O).
+                rewrite -> (fold_unfold_mystery_function_18_aux_S 0).
+                Search (_ + 0 = _).
+                exact (Nat.add_0_r 1).
+           ---- intro n'''.
+                unfold mystery_function_18.
+                Check (fold_unfold_mystery_function_18_aux_S (S (S n'''))).
+                rewrite -> (fold_unfold_mystery_function_18_aux_S (S (S n'''))).
+                Check (fold_unfold_mystery_function_18_aux_S (S n''')).
+                Search (_ + _ = _ + _).
+                Check (Nat.add_comm).
+                Check (Nat.add_assoc).
+                rewrite -> (Nat.add_comm
+                              (mystery_function_18_aux n''')
+                              (mystery_function_18_aux (S (S n''')) +
+                               mystery_function_18_aux (S n'''))).                                   rewrite <- (Nat.add_assoc
+                                                                                                                   (mystery_function_18_aux (S (S n''')))
+                                                                                                                   (mystery_function_18_aux (S n'''))
+                                                                                                                   (mystery_function_18_aux n''')).            
+                rewrite <- (fold_unfold_mystery_function_18_aux_S (S n''')).
+                Search (1 + 1).
+                rewrite -> (BinInt.ZL0).
+                Search ( (_ + _) * _).
+                rewrite -> (Nat.mul_add_distr_r 1 1 (mystery_function_18_aux (S (S n''')))).
+                Search (1 * _ = _).
+                rewrite -> (Nat.mul_1_l (mystery_function_18_aux (S (S n''')))).
+                reflexivity.
+Qed.
+                
 
+                
 (* ********** *)
 
 Definition specification_of_mystery_function_03 (mf : nat -> nat -> nat) :=
