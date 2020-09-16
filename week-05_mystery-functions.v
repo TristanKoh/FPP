@@ -209,6 +209,20 @@ Definition specification_of_mystery_function_11 (mf : nat -> nat) :=
   /\
   forall i j : nat,
     mf (i + j) = mf i + 2 * i * j + mf j.
+  
+
+Theorem there_is_at_most_one_mystery_function_11 :
+  forall f g : nat -> nat,
+    specification_of_mystery_function_11 f ->
+    specification_of_mystery_function_11 g ->
+    forall n : nat,
+      f n = g n.
+Proof.
+  unfold specification_of_mystery_function_11.
+  intros f g [H_f_O H_f_S] [H_g_O H_g_S] n.
+  induction n as [ | n' IHn'].
+  -
+Abort.
 
 Definition unit_test_for_mystery_function_11 (mf : nat -> nat) :=
   (mf 1 =n= 1)
@@ -220,7 +234,85 @@ Definition unit_test_for_mystery_function_11 (mf : nat -> nat) :=
 Definition mystery_function_11 (n : nat) :=
   n * n.
 
+Definition mystery_function_11_alt (n : nat) :=
+  match n with
+  | 0 => 1
+  | _ => n * n
+  end.
+
 Compute (unit_test_for_mystery_function_11 mystery_function_11).
+
+Compute (unit_test_for_mystery_function_11 mystery_function_11_alt).
+
+Theorem there_are_at_least_two_mystery_functions_11 :
+  exists f g : nat -> nat,
+    specification_of_mystery_function_11 f /\
+    specification_of_mystery_function_11 g /\
+    exists n : nat,
+      f n <> g n.
+Proof.
+  exists mystery_function_11, mystery_function_11_alt.
+  split.
+  - unfold specification_of_mystery_function_11, mystery_function_11.
+    split.
+    * Search (_ * 1 = _).
+      exact (Nat.mul_1_r 1).
+    * intros i j.
+      Search ((_ + _) * _ = _*_ + _*_).
+      Check (Nat.mul_add_distr_r).
+      rewrite -> (Nat.mul_add_distr_r i j (i + j)).
+      Search ( _ * (_ + _) = _ * _ + _ * _).
+      rewrite -> (Nat.mul_add_distr_l i i j).
+      rewrite -> (Nat.mul_add_distr_l j i j).
+      Search (S _ = _ + 1).
+      rewrite -> (BinInt.ZL0). 
+      Check (Nat.mul_add_distr_r).
+      rewrite -> (Nat.mul_add_distr_r 1 1 i).
+      Search (1 * _ = _).
+      Check (Nat.mul_1_l i).
+      rewrite -> (Nat.mul_1_l i).
+      Check (Nat.mul_add_distr_r i i j).
+      rewrite -> (Nat.mul_add_distr_r i i j).
+      Search (_ + (_ + _) = (_ + _) + _).
+      Check (Nat.mul_comm j i).
+      rewrite -> (Nat.mul_comm j i).
+      Check (Nat.add_assoc).
+      (* It associates left *)
+      rewrite <- (Nat.add_assoc (i * i) (i * j) (i * j + j * j)).
+      rewrite -> (Nat.add_assoc (i * j) (i * j) (j * j)).
+      rewrite <- (Nat.add_assoc (i * i) (i * j + i * j) (j * j)).
+      reflexivity.
+  - split.
+    * unfold specification_of_mystery_function_11, mystery_function_11_alt.
+      split.
+      ** Search (_ * 1 = _).
+         exact (Nat.mul_1_r 1).
+      ** intros i j.
+         Search ((_ + _) * _ = _*_ + _*_).
+         Check (Nat.mul_add_distr_r).
+         rewrite -> (Nat.mul_add_distr_r i j (i + j)).
+         Search ( _ * (_ + _) = _ * _ + _ * _).
+         rewrite -> (Nat.mul_add_distr_l i i j).
+         rewrite -> (Nat.mul_add_distr_l j i j).
+         Search (S _ = _ + 1).
+         rewrite -> (BinInt.ZL0). 
+         Check (Nat.mul_add_distr_r).
+         rewrite -> (Nat.mul_add_distr_r 1 1 i).
+         Search (1 * _ = _).
+         Check (Nat.mul_1_l i).
+         rewrite -> (Nat.mul_1_l i).
+         Check (Nat.mul_add_distr_r i i j).
+         rewrite -> (Nat.mul_add_distr_r i i j).
+         Search (_ + (_ + _) = (_ + _) + _).
+         Check (Nat.mul_comm j i).
+         rewrite -> (Nat.mul_comm j i).
+         Check (Nat.add_assoc).
+         (* It associates left *)
+         rewrite <- (Nat.add_assoc (i * i) (i * j) (i * j + j * j)).
+         rewrite -> (Nat.add_assoc (i * j) (i * j) (j * j)).
+         rewrite <- (Nat.add_assoc (i * i) (i * j + i * j) (j * j)).
+         
+         
 
 Theorem there_is_at_least_one_mystery_function_11 :
   specification_of_mystery_function_11 mystery_function_11.
@@ -257,7 +349,9 @@ Proof.
     reflexivity.
 Qed.
 
-  
+
+
+
 (* ********** *)
 
 Definition specification_of_mystery_function_04 (mf : nat -> nat) :=
@@ -532,6 +626,19 @@ Proof.
   destruct H_g_S as [H_g_2 H_g_S].
   assert ((f n) = (g n) /\ (f (S n)) = (g (S n))).
   induction n as [ | n' IHn'].
+  - split.
+    * rewrite -> H_f_0.
+      rewrite -> H_g_0.
+      reflexivity.
+    * rewrite -> H_f_1.
+      rewrite -> H_g_1.
+      reflexivity.
+  - split.
+    * destruct IHn' as [H_fn' H_fSn'].
+      rewrite -> H_fSn'.
+      reflexivity.
+    * destruct IHn' as [H_fn' H_fSn'].
+      
 Abort.
 
 Fixpoint mystery_function_17_aux (n : nat) : nat :=
