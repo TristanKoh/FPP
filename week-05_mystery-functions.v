@@ -236,11 +236,6 @@ Proof.
     Search ( _ * (_ + _) = _ * _ + _ * _).
     rewrite -> (Nat.mul_add_distr_l i i j).
     rewrite -> (Nat.mul_add_distr_l j i j).
-    Search ( _ * _ = _ * _).
-    rewrite -> (Nat.mul_comm i j).
-    Search (_ + (_ + _) = _ + _ + _).
-    Check (Nat.add_shuffle2 (i * i) (j * i) (j * i ) (j * j)).
-    rewrite (Nat.add_shuffle2 (i * i) (j * i) (j * i ) (j * j)).
     Search (S _ = _ + 1).
     rewrite -> (BinInt.ZL0). 
     Check (Nat.mul_add_distr_r).
@@ -256,9 +251,9 @@ Proof.
     (* Since we have three expressions with addition, we need to check whether addition associates to the left or right *)
     Check (Nat.add_assoc).
     (* It associates left *)
-    rewrite <- (Nat.add_assoc (i * i) (j * j) (i * j + i * j)).
+    rewrite <- (Nat.add_assoc (i * i) (i * j) (i * j + j * j)).
+    rewrite -> (Nat.add_assoc (i * j) (i * j) (j * j)).
     rewrite <- (Nat.add_assoc (i * i) (i * j + i * j) (j * j)).
-    rewrite -> (Nat.add_comm (j * j) (i * j + i * j)).
     reflexivity.
 Qed.
 
@@ -506,81 +501,6 @@ Definition unit_test_for_mystery_function_17 (mf : nat -> nat) :=
   &&
   (mf (S (0 + 1)) =n= (mf (S 0)) * (mf (S 1)) + mf 0 * mf 1).
 
-
-(*
-Theorem there_are_zero_mystery_functions_17 :
-  forall mf : nat -> nat,
-    specification_of_mystery_function_17 mf ->
-    exists x : nat,
-      mf x <> mf x.
-Proof.
-  unfold specification_of_mystery_function_17.
-  intros f [H_f_0 H_f_S].
-  destruct H_f_S as [H_f_1 H_f_S].
-  destruct H_f_S as [H_f_2 H_f_S].
-  exists 3.
-  rewrite <- (Nat.add_0_r 3) at 1.
-  rewrite -> (Nat.add_succ_l 2 0).
-  rewrite -> (H_f_S 2 0).
-  rewrite <- (Nat.add_0_r 3) at 2.
-  rewrite -> (Nat.add_succ_comm 2 0).
-  rewrite -> (plus_Sn_m 1 1).
-  rewrite -> (H_f_S 1 1).
-
-
-Theorem there_is_at_least_two_mystery_functions_17 :
-  exists f g : nat -> nat,
-    specification_of_mystery_function_17 f ->
-    specification_of_mystery_function_17 g ->
-    exists n : nat,
-      f n <> g n.
-Proof.
-  unfold specification_of_mystery_function_17.
-  intros f g [H_f_0 H_f_S] [H_g_0 H_g_S] n.
-  destruct H_f_S as [H_f_1 H_f_S].
-  destruct H_f_S as [H_f_2 H_f_S].
-  destruct H_g_S as [H_g_1 H_g_S].
-  destruct H_g_S as [H_g_2 H_g_S].
-  induction n as [ | n' IHn'].
- *)
-
-
-Lemma mystery_function_17_aux :
-  forall f g : nat -> nat,
-    specification_of_mystery_function_17 f ->
-    specification_of_mystery_function_17 g ->
-    forall n' : nat,
-      f (S n') = g (S n').
-Proof.
-  unfold specification_of_mystery_function_17.
-  intros f g [H_f_0 H_f_S] [H_g_0 H_g_S] n.
-  destruct H_f_S as [H_f_1 H_f_S].
-  destruct H_f_S as [H_f_2 H_f_S].
-  destruct H_g_S as [H_g_1 H_g_S].
-  destruct H_g_S as [H_g_2 H_g_S].
-  induction n as [ | n' IHn'].
-  - rewrite -> H_f_1.
-    rewrite -> H_g_1.
-    reflexivity.
-  - Search (1 +  _ = S _).
-    rewrite <- (Nat.add_1_l n').
-    rewrite -> (H_f_S 1 n').
-    rewrite -> (H_g_S 1 n').
-    rewrite -> IHn'.
-    rewrite -> H_f_2.
-    rewrite -> H_f_1.
-    rewrite -> H_g_2.
-    rewrite -> H_g_1.
-    rewrite -> (Nat.mul_1_l (g (S n'))).
-    rewrite -> (Nat.mul_1_l (g n')).
-    rewrite -> (Nat.mul_1_l (f n')).
-    induction n' as [ | n'' IHn''].
-    * rewrite -> H_f_0.
-      rewrite -> H_g_0.
-      reflexivity.
-    *
-Abort.
-    
 Theorem there_is_at_most_one_mystery_function_17 :
   forall f g : nat -> nat,
     specification_of_mystery_function_17 f ->
@@ -776,18 +696,6 @@ Proof.
   fold_unfold_tactic mystery_function_18_aux.
 Qed.
 
-
-Lemma there_is_at_least_one_mystery_function_18_aux :
-  forall x : nat,
-    x + x = 2 * x.
-Proof.
-  intro x.
-  induction x as [ | x' IHx'].
-  - reflexivity.
-  - Search (S _).
-Abort.
-
-    
 Theorem there_is_at_least_one_mystery_function_18 :
   specification_of_mystery_function_18 mystery_function_18.
 Proof.
