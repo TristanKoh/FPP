@@ -37,192 +37,11 @@ Notation "A =b= B" :=
 
 (* ********** *)
 
-Definition specification_of_mystery_function_00 (mf : nat -> nat) :=
-  mf 0 = 1 /\ forall i j : nat, mf (S (i + j)) = mf i + mf j.
-
-(* ***** *)
-
-Proposition there_is_at_most_one_mystery_function_00 :
-  forall f g : nat -> nat,
-    specification_of_mystery_function_00 f ->
-    specification_of_mystery_function_00 g ->
-    forall n : nat,
-      f n = g n.
-Proof.
-Abort.
-
-(* ***** *)
-
-Definition unit_test_for_mystery_function_00a (mf : nat -> nat) :=
-  (mf 0 =n= 1) (* etc. *).
-
-Definition unit_test_for_mystery_function_00b (mf : nat -> nat) :=
-  (mf 0 =n= 1) && (mf 1 =n= 2) (* etc. *).
-
-Definition unit_test_for_mystery_function_00c (mf : nat -> nat) :=
-  (mf 0 =n= 1) && (mf 1 =n= 2) && (mf 2 =n= 3) (* etc. *).
-
-Definition unit_test_for_mystery_function_00d (mf : nat -> nat) :=
-  (mf 0 =n= 1) && (mf 1 =n= 2) && (mf 2 =n= 3) && (mf 3 =n= 4)
-  (* etc. *).
-
-(* ***** *)
-
-Definition mystery_function_00 := S.
-
-Definition less_succinct_mystery_function_00 (n : nat) : nat :=
-  S n.
-
-Compute (unit_test_for_mystery_function_00d mystery_function_00).
-
-Theorem there_is_at_least_one_mystery_function_00 :
-  specification_of_mystery_function_00 mystery_function_00.
-Proof.
-  unfold specification_of_mystery_function_00, mystery_function_00.
-  split.
-  - reflexivity.
-  - intros i j.
-    rewrite -> (plus_Sn_m i (S j)).
-    rewrite <- (plus_n_Sm i j).
-    reflexivity.
-Qed.
-
-(* ***** *)
-
-Definition mystery_function_00_alt := fun (n : nat) => n + 1.
-
-Theorem there_is_at_least_one_mystery_function_00_alt :
-  specification_of_mystery_function_00 mystery_function_00_alt.
-Proof.
-Abort.
-  
-
-(* ***** *)
-
-Theorem soundness_of_the_unit_test_function_for_mystery_function_00 :
-  forall mf : nat -> nat,
-    specification_of_mystery_function_00 mf ->
-    unit_test_for_mystery_function_00c mf = true.
-Proof.
-  unfold specification_of_mystery_function_00.
-  unfold unit_test_for_mystery_function_00c.
-  intros mf [H_O H_S].
-  (* Goal: (mf 0 =n= 1) && (mf 1 =n= 2) && (mf 2 =n= 3) = true *)
-  rewrite -> H_O.
-  (* Goal: (1 =n= 1) && (mf 1 =n= 2) && (mf 2 =n= 3) = true *)
-  rewrite -> (Nat.eqb_refl 1).
-  (* Goal: true && (mf 1 =n= 2) && (mf 2 =n= 3) = true *)
-  rewrite -> (andb_true_l (mf 1 =n= 2)).
-  (* Goal: (mf 1 =n= 2) && (mf 2 =n= 3) = true *)
-  (* etc. *)
-  Check (Nat.add_1_l 0).
-  rewrite <- (Nat.add_1_l 0) at 1.
-  Check (plus_Sn_m 0 0).
-  rewrite -> (plus_Sn_m 0 0).
-  rewrite -> (H_S 0 0).
-  rewrite -> H_O.
-  rewrite -> (Nat.add_1_l 1).
-  Check (Nat.eqb_refl 2).
-  rewrite -> (Nat.eqb_refl 2).
-  rewrite -> (andb_true_l (mf 2 =n= 3)).
-  Check (Nat.add_1_l 1).
-  rewrite <- (Nat.add_1_l 1) at 1.
-  Check (plus_Sn_m 0 1).
-  rewrite -> (plus_Sn_m 0 1).
-  rewrite -> (H_S 0 1).
-  rewrite -> H_O.
-  rewrite <- (Nat.add_1_l 0) at 2.
-  Check (plus_Sn_m 0 0).
-  rewrite -> (plus_Sn_m 0 0).
-  rewrite -> (H_S 0 0).
-  rewrite -> H_O.
-  rewrite -> (Nat.add_1_l 1).
-  rewrite -> (Nat.add_1_l 2).
-  exact (Nat.eqb_refl 3).
-Qed.
-
-Theorem soundness_of_the_unit_test_function_for_mystery_function_00b :
-  forall mf : nat -> nat,
-    specification_of_mystery_function_00 mf ->
-    unit_test_for_mystery_function_00b mf = true.
-Proof.
-  unfold specification_of_mystery_function_00,
-         unit_test_for_mystery_function_00b.
-  intros mf [H_O H_S].
-  (* Goal: (mf 0 =n= 1) && (mf 1 =n= 2) = true *)
-  rewrite -> H_O.
-  (* Goal: (1 =n= 1) && (mf 1 =n= 2) = true *)
-  rewrite -> (Nat.eqb_refl 1).
-  (* Goal: true && (mf 1 =n= 2) = true *)
-  rewrite -> (andb_true_l (mf 1 =n= 2)).
-  (* Goal: (mf 1 =n= 2) = true *)
-  (* etc. *)
-  Check (Nat.add_1_l 0).
-  rewrite <- (Nat.add_1_l 0) at 1.
-  Check (plus_Sn_m 0 0).
-  rewrite -> (plus_Sn_m 0 0).
-  rewrite -> (H_S 0 0).
-  rewrite -> H_O.
-  Check (plus_Sn_m 0 1).
-  rewrite -> (plus_Sn_m 0 1).
-  Check (Nat.add_1_r 0).
-  rewrite -> (Nat.add_1_r 0).
-  Check (Nat.eqb_refl 2).
-  exact (Nat.eqb_refl 2).
-Qed.
-
-Theorem soundness_of_the_unit_test_function_for_mystery_function_00_with_Search :
-  forall mf : nat -> nat,
-    specification_of_mystery_function_00 mf ->
-    unit_test_for_mystery_function_00b mf = true.
-Proof.
-  unfold specification_of_mystery_function_00,
-         unit_test_for_mystery_function_00b.
-  intros mf [H_O H_S].
-
-  rewrite -> H_O.
-  Search (beq_nat _  _ = true).
-  Check (Nat.eqb_refl 1).
-  rewrite -> (Nat.eqb_refl 1).
-  Search (true && _ = _).
-  Check (andb_true_l (mf 1 =n= 2)).
-  rewrite -> (andb_true_l (mf 1 =n= 2)).
-
-  Check (Nat.add_1_l 0).
-  rewrite <- (Nat.add_1_l 0) at 1.
-  Check (plus_Sn_m 0 0).
-  rewrite -> (plus_Sn_m 0 0).
-  rewrite -> (H_S 0 0).
-  rewrite -> H_O.
-  Check (plus_Sn_m 0 1).
-  rewrite -> (plus_Sn_m 0 1).
-  Check (Nat.add_1_r 0).
-  rewrite -> (Nat.add_1_r 0).
-  Check (Nat.eqb_refl 2).
-  exact (Nat.eqb_refl 2).
-Qed.
-
-(* ********** *)
-
 Definition specification_of_mystery_function_11 (mf : nat -> nat) :=
   mf 1 = 1
   /\
   forall i j : nat,
     mf (i + j) = mf i + 2 * i * j + mf j.
-  
-
-Theorem there_is_at_most_one_mystery_function_11 :
-  forall f g : nat -> nat,
-    specification_of_mystery_function_11 f ->
-    specification_of_mystery_function_11 g ->
-    forall n : nat,
-      f n = g n.
-Proof.
-  unfold specification_of_mystery_function_11.
-  intros f g [H_f_O H_f_S] [H_g_O H_g_S] n.
-  induction n as [ | n' IHn'].
-  -
-Abort.
 
 Definition unit_test_for_mystery_function_11 (mf : nat -> nat) :=
   (mf 1 =n= 1)
@@ -234,85 +53,34 @@ Definition unit_test_for_mystery_function_11 (mf : nat -> nat) :=
 Definition mystery_function_11 (n : nat) :=
   n * n.
 
-Definition mystery_function_11_alt (n : nat) :=
+Fixpoint mystery_function_11_v2_alt (n : nat) :=
   match n with
   | 0 => 1
-  | _ => n * n
+  | S _ => n * n
   end.
+
+Definition mystery_function_11_v2 (n : nat) :=
+  mystery_function_11_v2_alt n.
+
+Lemma fold_unfold_mystery_function_11_v2_alt_O :
+    mystery_function_11_v2_alt 1 = 1.
+Proof.
+  fold_unfold_tactic mystery_function_11_v2_alt.
+Qed.
+
+
+Lemma fold_unfold_mystery_function_11_v2_alt_S :
+  forall n' : nat,
+    let n := (S n') in
+    mystery_function_11_v2_alt (S n') = n * n.
+Proof.
+  fold_unfold_tactic mystery_function_11_v2_alt.
+Qed.
+
 
 Compute (unit_test_for_mystery_function_11 mystery_function_11).
 
-Compute (unit_test_for_mystery_function_11 mystery_function_11_alt).
-
-Theorem there_are_at_least_two_mystery_functions_11 :
-  exists f g : nat -> nat,
-    specification_of_mystery_function_11 f /\
-    specification_of_mystery_function_11 g /\
-    exists n : nat,
-      f n <> g n.
-Proof.
-  exists mystery_function_11, mystery_function_11_alt.
-  split.
-  - unfold specification_of_mystery_function_11, mystery_function_11.
-    split.
-    * Search (_ * 1 = _).
-      exact (Nat.mul_1_r 1).
-    * intros i j.
-      Search ((_ + _) * _ = _*_ + _*_).
-      Check (Nat.mul_add_distr_r).
-      rewrite -> (Nat.mul_add_distr_r i j (i + j)).
-      Search ( _ * (_ + _) = _ * _ + _ * _).
-      rewrite -> (Nat.mul_add_distr_l i i j).
-      rewrite -> (Nat.mul_add_distr_l j i j).
-      Search (S _ = _ + 1).
-      rewrite -> (BinInt.ZL0). 
-      Check (Nat.mul_add_distr_r).
-      rewrite -> (Nat.mul_add_distr_r 1 1 i).
-      Search (1 * _ = _).
-      Check (Nat.mul_1_l i).
-      rewrite -> (Nat.mul_1_l i).
-      Check (Nat.mul_add_distr_r i i j).
-      rewrite -> (Nat.mul_add_distr_r i i j).
-      Search (_ + (_ + _) = (_ + _) + _).
-      Check (Nat.mul_comm j i).
-      rewrite -> (Nat.mul_comm j i).
-      Check (Nat.add_assoc).
-      (* It associates left *)
-      rewrite <- (Nat.add_assoc (i * i) (i * j) (i * j + j * j)).
-      rewrite -> (Nat.add_assoc (i * j) (i * j) (j * j)).
-      rewrite <- (Nat.add_assoc (i * i) (i * j + i * j) (j * j)).
-      reflexivity.
-  - split.
-    * unfold specification_of_mystery_function_11, mystery_function_11_alt.
-      split.
-      ** Search (_ * 1 = _).
-         exact (Nat.mul_1_r 1).
-      ** intros i j.
-         Search ((_ + _) * _ = _*_ + _*_).
-         Check (Nat.mul_add_distr_r).
-         rewrite -> (Nat.mul_add_distr_r i j (i + j)).
-         Search ( _ * (_ + _) = _ * _ + _ * _).
-         rewrite -> (Nat.mul_add_distr_l i i j).
-         rewrite -> (Nat.mul_add_distr_l j i j).
-         Search (S _ = _ + 1).
-         rewrite -> (BinInt.ZL0). 
-         Check (Nat.mul_add_distr_r).
-         rewrite -> (Nat.mul_add_distr_r 1 1 i).
-         Search (1 * _ = _).
-         Check (Nat.mul_1_l i).
-         rewrite -> (Nat.mul_1_l i).
-         Check (Nat.mul_add_distr_r i i j).
-         rewrite -> (Nat.mul_add_distr_r i i j).
-         Search (_ + (_ + _) = (_ + _) + _).
-         Check (Nat.mul_comm j i).
-         rewrite -> (Nat.mul_comm j i).
-         Check (Nat.add_assoc).
-         (* It associates left *)
-         rewrite <- (Nat.add_assoc (i * i) (i * j) (i * j + j * j)).
-         rewrite -> (Nat.add_assoc (i * j) (i * j) (j * j)).
-         rewrite <- (Nat.add_assoc (i * i) (i * j + i * j) (j * j)).
-         
-         
+Compute (unit_test_for_mystery_function_11 mystery_function_11_v2).
 
 Theorem there_is_at_least_one_mystery_function_11 :
   specification_of_mystery_function_11 mystery_function_11.
@@ -348,8 +116,6 @@ Proof.
     rewrite <- (Nat.add_assoc (i * i) (i * j + i * j) (j * j)).
     reflexivity.
 Qed.
-
-
 
 
 (* ********** *)
@@ -600,16 +366,6 @@ Definition specification_of_mystery_function_17 (mf : nat -> nat) :=
   forall p q : nat,
     mf (S (p + q)) = mf (S p) * mf (S q) + mf p * mf q.
 
-Definition unit_test_for_mystery_function_17 (mf : nat -> nat) :=
-  (mf 0 =n= 0)
-  &&
-  (mf 1 =n= 1)
-  &&
-  (mf 2 =n= 1)
-  &&
-  (mf (S (0 + 0)) =n= (mf (S 0)) * (mf (S 0)) + mf 0 * mf 0)
-  &&
-  (mf (S (0 + 1)) =n= (mf (S 0)) * (mf (S 1)) + mf 0 * mf 1).
 
 Theorem there_is_at_most_one_mystery_function_17 :
   forall f g : nat -> nat,
@@ -624,7 +380,7 @@ Proof.
   destruct H_f_S as [H_f_2 H_f_S].
   destruct H_g_S as [H_g_1 H_g_S].
   destruct H_g_S as [H_g_2 H_g_S].
-  assert ((f n) = (g n) /\ (f (S n)) = (g (S n))).
+  assert (IHn'_and_IHSn' : (f n) = (g n) /\ (f (S n)) = (g (S n))).
   induction n as [ | n' IHn'].
   - split.
     * rewrite -> H_f_0.
@@ -633,13 +389,39 @@ Proof.
     * rewrite -> H_f_1.
       rewrite -> H_g_1.
       reflexivity.
-  - split.
-    * destruct IHn' as [H_fn' H_fSn'].
-      rewrite -> H_fSn'.
+  - destruct IHn' as [IHn' IHSn'].
+    split.
+    * exact IHSn'.
+    * rewrite <- (Nat.add_0_r (S n')).
+      rewrite -> (Nat.add_succ_comm n' 0).
+      rewrite -> (H_f_S n' 1).
+      rewrite -> (H_g_S n' 1).
+      rewrite -> H_f_1.
+      rewrite -> H_g_1.
+      rewrite -> H_f_2.
+      rewrite -> H_g_2.
+      rewrite -> (IHn').
+      rewrite -> (IHSn').
       reflexivity.
-    * destruct IHn' as [H_fn' H_fSn'].
-      
-Abort.
+  - destruct IHn'_and_IHSn' as [IHn' IHSn'].
+    exact IHn'.
+Qed.
+
+Definition unit_test_for_mystery_function_17 (mf : nat -> nat) :=
+  (mf 0 =n= 0)
+  &&
+  (mf 1 =n= 1)
+  &&
+  (mf 2 =n= 1)
+  &&
+  (mf 3 =n= 2)
+  &&
+  (mf 4 =n= 3)
+  &&
+  (mf 5 =n= 5)
+  &&
+  (mf 6 =n= 8).
+
 
 Fixpoint mystery_function_17_aux (n : nat) : nat :=
   match n with
@@ -753,7 +535,6 @@ Definition specification_of_mystery_function_18 (mf : nat -> nat) :=
   forall n''' : nat,
     mf n''' + mf (S (S (S n'''))) = 2 * mf (S (S n''')).
 
-       
 Definition unit_test_for_mystery_function_18 (mf : nat -> nat) :=
   (mf 0 =n= 0)
   &&
@@ -761,11 +542,13 @@ Definition unit_test_for_mystery_function_18 (mf : nat -> nat) :=
   &&
   (mf 2 =n= 1)
   &&
-  (mf 0 + mf 3 =n= 2 * mf 2)
+  (mf 3 =n= 2)
   &&
-  (mf 1 + mf 4 =n= 2 * mf 3)
+  (mf 4 =n= 3)
   &&
-  (mf 2 + mf 5 =n= 2 * mf 4).
+  (mf 5 =n= 5)
+  &&
+  (mf 6 =n= 8).
 
 
 Fixpoint mystery_function_18_aux (n : nat) : nat :=
@@ -859,6 +642,56 @@ Definition specification_of_mystery_function_42 (mf : nat -> nat) :=
   /\
   forall i j : nat,
     mf (i + j) = mf i + mf j.
+
+
+Definition mystery_function_42_v1 (n : nat) : nat := 42 * n.
+Definition mystery_function_42_v2 (n : nat) : nat := 42 + (42 * (n - 1)).
+
+Theorem there_is_at_least_one_mystery_function_42 :
+  specification_of_mystery_function_42 mystery_function_42_v1.
+Proof.
+  unfold specification_of_mystery_function_42, mystery_function_42_v1.
+  split.
+  - exact (Nat.mul_1_r 42).
+  - intros i j.
+    Search (_ * (_ + _)).
+    exact (Nat.mul_add_distr_l 42 i j).
+Qed.
+
+Theorem there_is_another_mystery_function_42 :
+  specification_of_mystery_function_42 mystery_function_42_v2.
+Proof.
+  unfold specification_of_mystery_function_42, mystery_function_42_v2.
+  split.
+  - Search (_ - _ = _).
+    rewrite -> (Nat.sub_diag 1).
+    rewrite -> (Nat.mul_0_r 42).
+    exact (Nat.add_0_r 42).
+  - intros i j.
+    Search (_ * (_  - _)).
+    rewrite -> (Nat.mul_sub_distr_l (i + j) 1 42).
+    rewrite -> (Nat.mul_1_r 42).
+    rewrite -> (Nat.mul_add_distr_l 42 i j).
+    Search (_ + (_ - _)).
+    rewrite -> (Nat.add_sub_assoc 42 (42 * i + 42 * j) 42).
+    Search (_ + _ - _).
+    rewrite -> (minus_plus 42 (42 * i + 42 * j)).
+
+    rewrite -> (Nat.mul_sub_distr_l i 1 42).
+    rewrite -> (Nat.mul_1_r 42).
+    rewrite -> (Nat.add_sub_assoc 42 (42 * i) 42).
+    rewrite -> (minus_plus 42 (42 * i)).
+     
+    rewrite -> (Nat.mul_sub_distr_l j 1 42).
+    rewrite -> (Nat.mul_1_r 42).
+    rewrite -> (Nat.add_sub_assoc 42 (42 * j) 42).
+    rewrite -> (minus_plus 42 (42 * j)).
+    reflexivity.
+
+    * Abort.
+Qed.
+
+
 
 (* ********** *)
 
@@ -1017,6 +850,40 @@ Definition specification_of_mystery_function_10 (mf : nat -> bool) :=
   forall i j : nat,
     mf (i + j) = (mf i =b= mf j).
 
+
+Lemma negb_true_is_false :
+  negb true = false.
+Proof.
+  reflexivity.
+Qed.
+
+Theorem there_are_zero_mystery_functions_10 :
+  forall mf : nat -> bool,
+    specification_of_mystery_function_10 mf ->
+    exists x : nat,
+      mf x <> mf x.
+Proof.
+  intro mf.
+  unfold specification_of_mystery_function_10.
+  intros [H_S_0 H_S_S].
+  destruct H_S_S as [H_S_1 H_S_S].
+  exists 2.
+  rewrite <- (Nat.add_0_r 2) at 2.
+  rewrite -> (H_S_S 2 0).
+  rewrite <- (Nat.add_0_r 2).
+  Search (_ = _ + _).
+  rewrite -> (Nat.add_succ_comm 1 0).
+  rewrite -> (H_S_S 1 1).
+  rewrite -> H_S_0.
+  rewrite -> H_S_1.
+  Search (_ =b= _).
+  rewrite -> (eqb_reflx true).
+  rewrite <- (negb_true_is_false).
+  rewrite -> (eqb_negb2 true).
+  exact diff_true_false.
+Qed.
+
+
 (* ********** *)
 
 Definition specification_of_mystery_function_12 (mf : nat -> nat) :=
@@ -1031,27 +898,6 @@ Definition specification_of_mystery_function_14 (mf : nat -> bool) :=
   (forall q : nat, mf (2 * q) = true)
   /\
   (forall q : nat, mf (S (2 * q)) = false).
-
-(* ********** *)
-
-(* Simple examples of specifications: *)
-
-(* ***** *)
-
-Definition specification_of_the_factorial_function (fac : nat -> nat) :=
-  fac 0 = 1
-  /\
-  forall n' : nat, fac (S n') = S n' * fac n'.
-
-(* ***** *)
-
-Definition specification_of_the_fibonacci_function (fib : nat -> nat) :=
-  fib 0 = 0
-  /\
-  fib 1 = 1
-  /\
-  forall n'' : nat,
-    fib (S (S n'')) = fib n'' + fib (S n'').
 
 (* ********** *)
 
