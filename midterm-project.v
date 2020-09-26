@@ -1162,7 +1162,7 @@ Proof.
 Qed.
   
 (*
-   d. prove whether your implement satisfies the specification.
+   d. prove whether your implementation satisfies the specification.
 
  *)
 
@@ -1214,7 +1214,7 @@ Qed.
 (*
    e. prove whether reverse is involutory.
 *)
-
+    
 
 Proposition reverse_is_involutive :
   forall (V : Type)
@@ -1228,7 +1228,7 @@ Proof.
     reflexivity.
   - rewrite -> (fold_unfold_reverse_v0_aux_cons V v vs').
     Check (fold_unfold_append_v0_aux_cons).
-    
+    Check (fold_unfold_reverse_v0_aux_cons).
   
 Abort.
 
@@ -1250,9 +1250,13 @@ Proof.
     rewrite -> (fold_unfold_reverse_v0_aux_nil).
     rewrite -> (fold_unfold_length_v0_aux_nil).
     reflexivity.
-  - Check (fold_unfold_reverse_v0_aux_cons).
+  - Check (fold_unfold_length_v0_aux_cons).
+    rewrite -> (fold_unfold_length_v0_aux_cons V v' vs').
+    rewrite -> IHvs'.
+    Check (fold_unfold_reverse_v0_aux_cons).
     rewrite -> (fold_unfold_reverse_v0_aux_cons).
-    Check (fold_unfold_append_v0_aux_cons).
+    Check (fold_unfold_append_v0_aux_nil).
+    
 Abort.
     
 (*
@@ -1264,6 +1268,21 @@ Proposition append_and_reverse_commute_with_each_other :
          (v1s v2s : list V),
     append_v0 V (reverse_v0 V v1s) (reverse_v0 V v2s) = reverse_v0 V (append_v0 V v2s v1s).
 Proof.
+  intro V.
+  unfold append_v0, reverse_v0.
+  induction v1s as [ | v v1s' IHv1s'].
+  - intro v2s.
+    rewrite -> (fold_unfold_reverse_v0_aux_nil).
+    rewrite -> (fold_unfold_append_v0_aux_nil).
+    Check (fold_unfold_append_v0_aux_nil).
+    fold (append_v0 V v2s nil).
+    rewrite -> (nil_is_right_neutral_of_append_v0 V v2s).
+    reflexivity.
+  - intro v2s.
+    rewrite -> (fold_unfold_reverse_v0_aux_cons V v v1s').
+    Check (fold_unfold_append_v0_aux_cons).
+
+    
 Abort.
 
 (*
@@ -1314,14 +1333,43 @@ Proof.
   - intros V v vs'.
     Check (fold_unfold_reverse_v1_aux_cons).    
     rewrite -> (fold_unfold_reverse_v1_aux_cons V v vs' nil).
-    rewrite -> (fold_unfold_reverse_v1_aux_cons V v vs' nil).
+    
+    
 Abort.
 
-    
+
 (*
    i. revisit the propositions above (involution, preservation of length, commutation with append)
       and prove whether your implementation using an accumulator satisfies them
-*)
+ *)
+
+
+Proposition reverse_v1_is_involutive :
+  forall (V : Type)
+         (vs : list V),
+    reverse_v1 V (reverse_v1 V vs) = vs.
+Proof.
+Abort.
+
+
+
+Proposition reverse_v1_preserves_length :
+  forall (V : Type)
+         (vs : list V),
+    length_v1 V vs = length_v1 V (reverse_v1 V vs).
+Proof.
+Abort.
+
+
+
+Proposition append_and_reverse_v1_commute_with_each_other :
+  forall (V : Type)
+         (v1s v2s : list V),
+    append_v0 V (reverse_v1 V v1s) (reverse_v1 V v2s) = reverse_v1 V (append_v0 V v2s v1s).
+Proof.
+Abort.
+
+
 
 (* ********** *)
 
