@@ -125,8 +125,7 @@ Proof.
   intro H_eqb_list.
   induction v1s as [ | v  v1s' IHv1s'].
   - destruct v2s as [ | v v2s'].
-    + reflexivity.
-      
+    + reflexivity. 
     + discriminate.
   - induction v2s as [ | v2  v2s' IHv2s'].
     + discriminate.
@@ -653,10 +652,10 @@ Proof.
     rewrite -> fold_unfold_copy_v0_aux_nil.
     reflexivity.
   - intros V v vs.
-    induction vs as [ | v' vs'' IHvs''].
+    destruct vs.
     + rewrite -> (fold_unfold_copy_v0_aux_cons V v nil).
       reflexivity.
-    + rewrite -> (fold_unfold_copy_v0_aux_cons V v (v' :: vs'')).
+    + rewrite -> (fold_unfold_copy_v0_aux_cons V v (v0 :: vs)).
       reflexivity.
 Qed.
 
@@ -999,8 +998,8 @@ Proof.
     Check (fold_unfold_append_v0_aux_cons).
     rewrite -> (fold_unfold_append_v0_aux_cons V v' v1s' v2s).
     Check (fold_unfold_length_v0_aux_cons).
-    rewrite -> (fold_unfold_length_v0_aux_cons V v' (append_v0_aux V v1s' v2s)).
     rewrite -> (fold_unfold_length_v0_aux_cons V v' v1s').
+    rewrite -> (fold_unfold_length_v0_aux_cons V v' (append_v0_aux V v1s' v2s)).
     rewrite -> (IHv1s' v2s).
     Search ( S(_ + _)).
     rewrite -> (Nat.add_succ_l (length_v0_aux V v1s') (length_v0_aux V v2s)).
@@ -1227,9 +1226,10 @@ Proof.
   - rewrite -> (fold_unfold_reverse_v0_aux_nil).
     reflexivity.
   - rewrite -> (fold_unfold_reverse_v0_aux_cons V v vs').
-    Check (fold_unfold_append_v0_aux_cons).
     Check (fold_unfold_reverse_v0_aux_cons).
-  
+    Check (fold_unfold_append_v0_aux_cons).
+
+    
 Abort.
 
 
