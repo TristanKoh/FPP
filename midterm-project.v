@@ -979,13 +979,12 @@ Abort.
    h. prove whether append is associative
 *)
 
-Proposition append_v0_is_associative :
+Lemma append_v0_aux_is_associative : 
   forall (V : Type)
          (v1s v2s v3s : list V),
-    append_v0 V v1s (append_v0 V v2s v3s) = append_v0 V (append_v0 V v1s v2s) v3s.
+    append_v0_aux V v1s (append_v0_aux V v2s v3s) = append_v0_aux V (append_v0_aux V v1s v2s) v3s.
 Proof.
   intros V v1s v2s v3s.
-  unfold append_v0.
   induction v1s as [ | v' v1s' IHv1s'].
   - rewrite -> (fold_unfold_append_v0_aux_nil V (append_v0_aux V v2s v3s)).
     rewrite -> (fold_unfold_append_v0_aux_nil V v2s).
@@ -996,6 +995,15 @@ Proof.
     rewrite -> (fold_unfold_append_v0_aux_cons V v' (append_v0_aux V v1s' v2s) v3s).
     rewrite -> IHv1s'.
     reflexivity.
+Qed.
+
+Proposition append_v0_is_associative :
+  forall (V : Type)
+         (v1s v2s v3s : list V),
+    append_v0 V v1s (append_v0 V v2s v3s) = append_v0 V (append_v0 V v1s v2s) v3s.
+Proof.
+  unfold append_v0.
+  exact append_v0_aux_is_associative.
 Qed.
 
 
@@ -1249,9 +1257,7 @@ Proof.
     rewrite -> (fold_unfold_append_v0_aux_cons V v1 v1s').
     rewrite -> (fold_unfold_reverse_v0_aux_cons V v1 (append_v0_aux V v1s' v2s)).
     rewrite -> IHv1s'.
-    fold (append_v0 V (reverse_v0_aux V v2s) (reverse_v0_aux V v1s')).
-    fold (append_v0 V (append_v0 V (reverse_v0_aux V v2s) (reverse_v0_aux V v1s')) (v1 :: nil)).
-    rewrite <- (append_v0_is_associative V (reverse_v0_aux V v2s) (reverse_v0_aux V v1s') (v1 :: nil)).
+    rewrite <- (append_v0_aux_is_associative V (reverse_v0_aux V v2s) (reverse_v0_aux V v1s') (v1 :: nil)).
     unfold append_v0.
     reflexivity.
 Qed.
@@ -1540,7 +1546,9 @@ Qed.
 (*
    f. prove whether mapping a function over a list preserves the length of this list
  *)
-  
+
+
+
 Proposition map_preserves_length :
   forall (V W : Type)
          (f : V -> W)
@@ -1570,9 +1578,63 @@ Abort.
    g. do map and append commute with each other and if so how?
  *)
 
+Lemma append_aux_and_map_aux_commute_with_each_other :
+  forall (V W : Type)
+         (f : V -> W)
+         (v1s v2s : list V),
+    map_v0_aux V W f (append_v0_aux V v1s v2s) = append_v0_aux W (map_v0_aux V W f v1s) (map_v0_aux V W f v2s).
+Proof.
+  intros V W f v1s v2s.
+  induction v1s as [ | v1 v1s' IHv1s'].
+  - rewrite -> (fold_unfold_append_v0_aux_nil V v2s).
+    rewrite -> (fold_unfold_map_v0_aux_nil V W f).
+    rewrite -> (fold_unfold_append_v0_aux_nil W (map_v0_aux V W f v2s)).
+    reflexivity.
+  -  rewrite -> (fold_unfold_append_v0_aux_cons V v1 v1s' v2s).
+     rewrite -> (fold_unfold_map_v0_aux_cons V W f v1 v1s').
+     rewrite -> (fold_unfold_map_v0_aux_cons V W f v1 (append_v0_aux V v1s' v2s)).
+     rewrite -> (fold_unfold_append_v0_aux_cons W (f v1) (map_v0_aux V W f v1s') (map_v0_aux V W f v2s)).
+     rewrite -> IHv1s'.
+     reflexivity.
+Qed.
+
+Proposition append_and_map_commute_with_each_other :
+  forall (V W : Type)
+         (f : V -> W)
+         (v1s v2s : list V),
+    map_v0 V W f (append_v0 V v1s v2s) = append_v0 W (map_v0 V W f v1s) (map_v0 V W f v2s).
+Proof.
+  unfold map_v0, append_v0.
+  exact append_aux_and_map_aux_commute_with_each_other.
+Qed.
+
+
 (*
    h. do map and reverse commute with each other and if so how?
  *)
+
+Proposition reverse_and_map_commute_with_each_other :
+  forall (V W : Type)
+         (f : V -> W)
+         (vs : list V),
+    map_v0 V W f (reverse_v0 V vs) = reverse_v0 W (map_v0 V W f vs).
+Proof.
+  intros V W f vs.
+  unfold map_v0, reverse_v0.
+  induction vs as [ | v vs' IHvs'].
+  - rewrite -> (fold_unfold_reverse_v0_aux_nil V).
+    rewrite -> (fold_unfold_map_v0_aux_nil V W f).
+    rewrite -> (fold_unfold_reverse_v0_aux_nil W).
+    reflexivity.
+  - rewrite -> (fold_unfold_reverse_v0_aux_cons V v vs').
+    rewrite -> (fold_unfold_map_v0_aux_cons V W f v vs').
+    rewrite -> (fold_unfold_reverse_v0_aux_cons W (f v) (map_v0_aux V W f vs')).
+    rewrite -> (append_aux_and_map_aux_commute_with_each_other V W f (reverse_v0_aux V vs') (v :: nil)).
+    rewrite -> IHvs'.
+    rewrite -> (fold_unfold_map_v0_aux_cons V W f v nil).
+    rewrite -> (fold_unfold_map_v0_aux_nil V W f).
+    reflexivity.
+Qed.
 
 (*
    i. define a unit-test function for map and verify that your implementation satisfies it
@@ -1805,10 +1867,8 @@ Proof.
     rewrite -> (fold_unfold_list_fold_left_aux_cons V (list V) nil_case (fun (v0 : V) (vs : list V) => v0 :: vs) v' vs'').
     rewrite -> (IHvs'' (v' :: nil_case)).
     rewrite -> (IHvs'' (v' :: nil)).
-    fold (append_v0 V (list_fold_left_aux V (list V) nil (fun (v0 : V) (vs : list V) => v0 :: vs) vs'') (v' :: nil)).
-    fold (append_v0 V (append_v0 V (list_fold_left_aux V (list V) nil (fun (v0 : V) (vs : list V) => v0 :: vs) vs'') (v' :: nil)) nil_case).    
-    Check (append_v0_is_associative V (list_fold_left_aux V (list V) nil (fun (v0 : V) (vs : list V) => v0 :: vs) vs'') (v' :: nil) nil_case).
-    rewrite <- (append_v0_is_associative V (list_fold_left_aux V (list V) nil (fun (v0 : V) (vs : list V) => v0 :: vs) vs'') (v' :: nil) nil_case).
+    Check (append_v0_aux_is_associative V (list_fold_left_aux V (list V) nil (fun (v0 : V) (vs : list V) => v0 :: vs) vs'') (v' :: nil) nil_case).
+    rewrite <- (append_v0_aux_is_associative V (list_fold_left_aux V (list V) nil (fun (v0 : V) (vs : list V) => v0 :: vs) vs'') (v' :: nil) nil_case).
     unfold append_v0.
     rewrite -> (fold_unfold_append_v0_aux_cons V v' nil nil_case).
     rewrite -> (fold_unfold_append_v0_aux_nil V nil_case).
