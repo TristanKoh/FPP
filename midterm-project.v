@@ -121,23 +121,22 @@ Theorem soundness_of_equality_over_lists :
       eqb_list V eqb_V v1s v2s = true ->
       v1s = v2s.
 Proof.
-  intros V eqb_v H_eqb_v v1s v2s.
-  intro H_eqb_list.
-  induction v1s as [ | v  v1s' IHv1s'].
-  - destruct v2s as [ | v v2s'].
-    + reflexivity. 
+  intros V eqb_v H_eqb_v_implies_v1_equals_v2 v1s.
+  induction v1s as [ | v1  v1s' IHv1s'].
+  - intros [ | v2 v2s' ] H_eqb_list.
+    + reflexivity.
     + discriminate.
-  - induction v2s as [ | v2  v2s' IHv2s'].
+  - intros [ | v2 v2s' ] H_eqb_list.
     + discriminate.
-    + rewrite -> (fold_unfold_eqb_list_cons V eqb_v v v1s' (v2 :: v2s')) in H_eqb_list.
+    + rewrite -> (fold_unfold_eqb_list_cons V eqb_v v1 v1s' (v2 :: v2s')) in H_eqb_list.
       Search (_ && _ = true -> _ /\_).
-      assert (H_and_v_vs' :=  (andb_prop (eqb_v v v2)(eqb_list V eqb_v v1s' v2s'))).
+      assert (H_and_v_vs' := (andb_prop (eqb_v v1 v2)(eqb_list V eqb_v v1s' v2s'))).
       assert (H_and_v_vs' := H_and_v_vs' H_eqb_list).
-      destruct H_and_v_vs' as [H_v H_vs'].
-      rewrite -> (H_eqb_v v v2 H_v).
-      rewrite -> (fold_unfold_eqb_list_cons V eqb_v v v1s' v2s') in IHv2s'.
-      (* PROBLEM HERE (Ex 0 soundness) *)
-Abort.
+      destruct H_and_v_vs' as [H_eqb_v H_eqb_vs'].
+      rewrite -> (H_eqb_v_implies_v1_equals_v2 v1 v2 H_eqb_v).
+      rewrite -> (IHv1s' v2s' H_eqb_vs').
+      reflexivity.
+Qed.
 
 Theorem completeness_of_equality_over_lists :
   forall (V : Type)
@@ -148,13 +147,22 @@ Theorem completeness_of_equality_over_lists :
       v1s = v2s ->
       eqb_list V eqb_V v1s v2s = true.
 Proof.
-  intros V eqb_v H_v v1s v2s.
-  intro H_v1s_v2s.
-  induction v1s as [ | v1s' IHv1s'].
-  - Check (fold_unfold_eqb_list_nil V eqb_v v2s).
-    rewrite -> (fold_unfold_eqb_list_nil V eqb_v v2s).
-    (* PROBLEM HERE (Ex 0 completeness) *)
-Abort.
+  intros V eqb_v H_v1_equals_v2_implies_eqb_V v1s.
+  induction v1s as [ | v1 v1s' IHv1s'].
+  - intros [ | v2 v2s' ].
+    + reflexivity.
+    + discriminate.
+  - intros [ | v2 v2s' ].
+    + discriminate.
+    + intro H_v1s_equals_v2s.
+      rewrite -> (fold_unfold_eqb_list_cons V eqb_v v1 v1s' (v2 :: v2s')).
+      injection H_v1s_equals_v2s as H_v1_equals_v2 H_v1s'_equals_v2s'.
+      rewrite -> (H_v1_equals_v2_implies_eqb_V v1 v2 H_v1_equals_v2).
+      rewrite -> (IHv1s' v2s' H_v1s'_equals_v2s').
+      Search (_ && _ = _).
+      rewrite -> (andb_diag true).
+      reflexivity.
+Qed.
 
 (* ********** *)
 
@@ -982,6 +990,12 @@ Theorem append_v0_is_not_commutative_more_generally :
     append_v0 V v1s v2s <> append_v0 V v2s v1s.
 Proof.
   intro V.
+  (* hopefully can do something like
+  exists (v1 :: nil).
+  exists (v2 :: nil).
+  ...
+  discriminate
+  *)
   (* PROBLEM HERE (Ex 4g) *)
 Abort.
 
@@ -1654,23 +1668,28 @@ Proposition map_preserves_length :
     length_v0 V vs = n ->
     length_v0 W (map_v0 V W f vs) = n.
 Proof.
-  intros V W f vs n.
+  intros V W f vs.
   unfold length_v0, map_v0.
-  revert n.
   induction vs as [ | v vs' IHvs'].
   - intros n H_length_v0_aux.
     rewrite -> (fold_unfold_map_v0_aux_nil V W f).
     rewrite -> (fold_unfold_length_v0_aux_nil W).
     rewrite -> (fold_unfold_length_v0_aux_nil V) in H_length_v0_aux.
     exact (H_length_v0_aux).
-  - intro n.
-    rewrite -> (fold_unfold_map_v0_aux_cons V W f v vs').
-    rewrite -> (fold_unfold_length_v0_aux_cons V v vs').
-    rewrite -> (fold_unfold_length_v0_aux_cons W (f v) (map_v0_aux V W f vs')).
-    Search (S _ = _).
-    (* PROBLEM HERE (Ex 6f) *)
-Abort.
-    
+  - intros [ | n'].
+    + rewrite -> (fold_unfold_map_v0_aux_cons V W f v vs').
+      rewrite -> (fold_unfold_length_v0_aux_cons V v vs').
+      rewrite -> (fold_unfold_length_v0_aux_cons W (f v) (map_v0_aux V W f vs')).
+      discriminate.
+    + rewrite -> (fold_unfold_map_v0_aux_cons V W f v vs').
+      rewrite -> (fold_unfold_length_v0_aux_cons V v vs').
+      rewrite -> (fold_unfold_length_v0_aux_cons W (f v) (map_v0_aux V W f vs')).
+      intro H_S_length_v0_aux_equals_S_n'.
+      Search (S _ = _).
+      assert (H_length_v0_aux_equals_n' := eq_add_S (length_v0_aux V vs') n' H_S_length_v0_aux_equals_S_n').
+      rewrite -> (IHvs' n' H_length_v0_aux_equals_n').
+      reflexivity.
+Qed.
     
 (*
    g. do map and append commute with each other and if so how?
