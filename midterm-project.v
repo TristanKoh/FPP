@@ -319,6 +319,7 @@ Proof.
     reflexivity.
 Qed.    
 
+
 Theorem length_v1_satisfies_the_specification_of_length :
   specification_of_length length_v1.
 Proof.
@@ -649,7 +650,7 @@ Proof.
   unfold specification_of_copy, copy_v0.
   split.
   - intro V.
-    rewrite -> fold_unfold_copy_v0_aux_nil.
+    rewrite -> (fold_unfold_copy_v0_aux_nil V).
     reflexivity.
   - intros V v vs.
     destruct vs.
@@ -672,8 +673,8 @@ Proof.
   intros V vs.
   unfold copy_v0.
   induction vs as [ | v vs' IHvs'].
-  - rewrite -> fold_unfold_copy_v0_aux_nil.
-    rewrite -> fold_unfold_copy_v0_aux_nil.
+  - rewrite -> (fold_unfold_copy_v0_aux_nil V).
+    rewrite -> (fold_unfold_copy_v0_aux_nil V).
     reflexivity.
   - rewrite -> (fold_unfold_copy_v0_aux_cons V v (vs')).
     rewrite -> (fold_unfold_copy_v0_aux_cons V v (copy_v0_aux V vs')).
@@ -713,9 +714,9 @@ Proof.
   induction vs as [ | v' vs' IHvs'].
   - intro n.
     intro H_length_v0_aux.
-    rewrite -> (fold_unfold_length_v0_aux_nil) in H_length_v0_aux.
-    rewrite -> (fold_unfold_copy_v0_aux_nil).
-    rewrite -> (fold_unfold_length_v0_aux_nil).
+    rewrite -> (fold_unfold_length_v0_aux_nil V) in H_length_v0_aux.
+    rewrite -> (fold_unfold_copy_v0_aux_nil V).
+    rewrite -> (fold_unfold_length_v0_aux_nil V).
     exact H_length_v0_aux.
   - intro n.
     intro H_length_v0_aux.
@@ -881,7 +882,7 @@ Proof.
   unfold specification_of_append, append_v0.
   split.
   - intros V v2s.
-    rewrite -> (fold_unfold_append_v0_aux_nil).
+    rewrite -> (fold_unfold_append_v0_aux_nil V).
     reflexivity.
   - intros V v1 v1s' v2s.
     exact (fold_unfold_append_v0_aux_cons V v1 v1s' v2s).
@@ -899,7 +900,7 @@ Proposition nil_is_left_neutral_of_append_v0 :
 Proof.
   intros V vs.
   unfold append_v0.
-  Check (fold_unfold_append_v0_aux_nil).
+  Check (fold_unfold_append_v0_aux_nil V).
   rewrite -> (fold_unfold_append_v0_aux_nil V vs).
   reflexivity.
 Qed.
@@ -981,17 +982,16 @@ Qed.
 *)
 
 
-Lemma eureka_lemma_append_preserves_length :
+Lemma eureka_lemma_append_preserves_length_aux :
   forall (V : Type)
          (v1s v2s : list V),
-    length_v0 V (append_v0 V v1s v2s) = length_v0 V v1s + length_v0 V v2s.
+    length_v0_aux V (append_v0_aux V v1s v2s) = length_v0_aux V v1s + length_v0_aux V v2s.
 Proof.
-  intro V.
-  unfold append_v0, length_v0.
   induction v1s as [ | v' v1s' IHv1s'].
   - intro v2s.
-    rewrite -> (fold_unfold_length_v0_aux_nil).
-    rewrite -> (fold_unfold_append_v0_aux_nil).
+    Check (fold_unfold_length_v0_aux_nil).
+    rewrite -> (fold_unfold_length_v0_aux_nil V).
+    rewrite -> (fold_unfold_append_v0_aux_nil V).
     rewrite -> (Nat.add_0_l (length_v0_aux V v2s)).
     reflexivity.
   - intro v2s.
@@ -1005,8 +1005,21 @@ Proof.
     rewrite -> (Nat.add_succ_l (length_v0_aux V v1s') (length_v0_aux V v2s)).
     reflexivity.
 Qed.
-    
-    
+  
+
+Lemma eureka_lemma_append_preserves_length :
+  forall (V : Type)
+         (v1s v2s : list V),
+    length_v0 V (append_v0 V v1s v2s) = length_v0 V v1s + length_v0 V v2s.
+Proof.
+  intro V.
+  unfold append_v0, length_v0.
+  intros v1s v2s.
+  Check (eureka_lemma_append_preserves_length_aux).
+  exact (eureka_lemma_append_preserves_length_aux V v1s v2s).
+Qed.
+
+
 Proposition append_preserves_length :
   forall (V : Type)
          (v1s v2s : list V)
@@ -1038,9 +1051,9 @@ Proof.
   unfold copy_v0, append_v0.
   induction v1s as [ | v v1s' IHv1s'].
   - intro v2s.
-    rewrite -> (fold_unfold_append_v0_aux_nil).
-    rewrite -> (fold_unfold_copy_v0_aux_nil).
-    rewrite -> (fold_unfold_append_v0_aux_nil).
+    rewrite -> (fold_unfold_append_v0_aux_nil V).
+    rewrite -> (fold_unfold_copy_v0_aux_nil V).
+    rewrite -> (fold_unfold_append_v0_aux_nil V).
     reflexivity.
   - intro v2s.
     Check (fold_unfold_append_v0_aux_cons).
@@ -1197,11 +1210,12 @@ Proof.
   intro append.
   split.
   - intro V.
-    rewrite -> (fold_unfold_reverse_v0_aux_nil).
+    rewrite -> (fold_unfold_reverse_v0_aux_nil V).
     reflexivity.
   - intros V v vs'.
     rewrite -> (fold_unfold_reverse_v0_aux_cons V v vs').
     fold (append_v0 V (reverse_v0_aux V vs') (v :: nil)).
+    Check (there_is_at_most_one_append_function).
     Check (there_is_at_most_one_append_function V append_v0 append append_v0_satisfies_the_specification_of_append H (reverse_v0_aux V vs')(v :: nil)).
     rewrite -> (there_is_at_most_one_append_function V append_v0 append append_v0_satisfies_the_specification_of_append H (reverse_v0_aux V vs')(v :: nil)).
     reflexivity.
@@ -1220,12 +1234,13 @@ Proposition reverse_is_involutive :
          (vs : list V),
     reverse_v0 V (reverse_v0 V vs) = vs.
 Proof.
-  intro V.
+  intros V vs.
   unfold reverse_v0.
   induction vs as [ | v vs' IHvs'].
-  - rewrite -> (fold_unfold_reverse_v0_aux_nil).
+  - rewrite -> (fold_unfold_reverse_v0_aux_nil V).
     reflexivity.
   - rewrite -> (fold_unfold_reverse_v0_aux_cons V v vs').
+    (* PROBLEM HERE *)
     Check (fold_unfold_reverse_v0_aux_cons).
     Check (fold_unfold_append_v0_aux_cons).
 
@@ -1243,21 +1258,28 @@ Proposition reverse_preserves_length :
          (vs : list V),
     length_v0 V vs = length_v0 V (reverse_v0 V vs).
 Proof.
-  intros V.
+  intros V vs.
   unfold length_v0, reverse_v0.
   induction vs as [ | v' vs' IHvs'].
-  - rewrite -> (fold_unfold_length_v0_aux_nil).
-    rewrite -> (fold_unfold_reverse_v0_aux_nil).
-    rewrite -> (fold_unfold_length_v0_aux_nil).
+  - rewrite -> (fold_unfold_length_v0_aux_nil V).
+    rewrite -> (fold_unfold_reverse_v0_aux_nil V).
+    rewrite -> (fold_unfold_length_v0_aux_nil V).
     reflexivity.
   - Check (fold_unfold_length_v0_aux_cons).
     rewrite -> (fold_unfold_length_v0_aux_cons V v' vs').
     rewrite -> IHvs'.
     Check (fold_unfold_reverse_v0_aux_cons).
     rewrite -> (fold_unfold_reverse_v0_aux_cons).
-    Check (fold_unfold_append_v0_aux_nil).
-    
-Abort.
+    Check (eureka_lemma_append_preserves_length_aux).
+    rewrite -> (eureka_lemma_append_preserves_length_aux V (reverse_v0_aux V vs') (v' :: nil)).
+    Check (fold_unfold_length_v0_aux_cons).
+    rewrite -> (fold_unfold_length_v0_aux_cons V v' nil).
+    rewrite -> (fold_unfold_length_v0_aux_nil V).
+    rewrite <- IHvs'.
+    Search (_ + 1).
+    rewrite -> (Nat.add_1_r (length_v0_aux V vs')).
+    reflexivity.
+Qed.
     
 (*
    g. do append and reverse commute with each other (hint: yes they do) and if so how?
@@ -1272,16 +1294,15 @@ Proof.
   unfold append_v0, reverse_v0.
   induction v1s as [ | v v1s' IHv1s'].
   - intro v2s.
-    rewrite -> (fold_unfold_reverse_v0_aux_nil).
-    rewrite -> (fold_unfold_append_v0_aux_nil).
-    Check (fold_unfold_append_v0_aux_nil).
+    rewrite -> (fold_unfold_reverse_v0_aux_nil V).
+    rewrite -> (fold_unfold_append_v0_aux_nil V).
+    Check (fold_unfold_append_v0_aux_nil V).
     fold (append_v0 V v2s nil).
     rewrite -> (nil_is_right_neutral_of_append_v0 V v2s).
     reflexivity.
   - intro v2s.
     rewrite -> (fold_unfold_reverse_v0_aux_cons V v v1s').
-    Check (fold_unfold_append_v0_aux_cons).
-
+    
     
 Abort.
 
@@ -1328,7 +1349,7 @@ Proof.
   unfold specification_of_reverse, reverse_v1.
   split.
   - intro V.
-    rewrite -> (fold_unfold_reverse_v1_aux_nil).
+    rewrite -> (fold_unfold_reverse_v1_aux_nil V).
     reflexivity.
   - intros V v vs'.
     Check (fold_unfold_reverse_v1_aux_cons).    
