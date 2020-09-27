@@ -2010,8 +2010,30 @@ Definition is_left_permutative (V W : Type) (op2 : V -> W -> W) :=
       to a nil case, this cons case, and a list
       give the same result
 *)
-  
-(*
+
+Lemma eureka_lemma_the_grand_finale :
+  forall (V W : Type)
+         (cons_case : V -> W -> W),
+    is_left_permutative V W cons_case ->
+    forall (nil_case : W)
+           (v : V)
+           (vs' : list V),
+      list_fold_right_aux V W (cons_case v nil_case) cons_case vs' =
+      cons_case v (list_fold_right_aux V W nil_case cons_case vs').
+Proof.
+  intros V W cons_case H_is_left_permutative nil_case v vs'.
+  induction vs' as [ | v' vs'' IHvs'' ].
+  - rewrite -> (fold_unfold_list_fold_right_aux_nil V W (cons_case v nil_case) cons_case).
+    rewrite -> (fold_unfold_list_fold_right_aux_nil V W nil_case cons_case).
+    reflexivity.
+  - rewrite -> (fold_unfold_list_fold_right_aux_cons V W (cons_case v nil_case) cons_case v' vs'').
+    rewrite -> (fold_unfold_list_fold_right_aux_cons V W nil_case cons_case v' vs'').
+    unfold is_left_permutative in H_is_left_permutative.
+    rewrite -> (H_is_left_permutative v v' (list_fold_right_aux V W nil_case cons_case vs'')).
+    rewrite -> IHvs''.
+    reflexivity.
+Qed.
+
 Theorem the_grand_finale :
   forall (V W : Type)
          (cons_case : V -> W -> W),
@@ -2021,8 +2043,19 @@ Theorem the_grand_finale :
       list_fold_left  V W nil_case cons_case vs =
       list_fold_right V W nil_case cons_case vs.
 Proof.
-Abort.
-*)
+  intros V W cons_case H_is_left_permutative nil_case vs.
+  revert nil_case.
+  unfold list_fold_left, list_fold_right.
+  induction vs as [ | v vs' IHvs' ].
+  - intro nil_case.
+    rewrite -> (fold_unfold_list_fold_right_aux_nil V W nil_case cons_case).
+    exact (fold_unfold_list_fold_left_aux_nil V W nil_case cons_case).
+  - intro nil_case.
+    rewrite -> (fold_unfold_list_fold_left_aux_cons V W nil_case cons_case v vs').
+    rewrite -> (fold_unfold_list_fold_right_aux_cons V W nil_case cons_case v vs').
+    rewrite -> (IHvs' (cons_case v nil_case)).
+    exact (eureka_lemma_the_grand_finale V W cons_case H_is_left_permutative nil_case v vs').
+Qed.
 
 (*
    o. can you think of corollaries of this property?
@@ -2031,9 +2064,11 @@ Abort.
 Lemma plus_is_left_permutative :
   is_left_permutative nat nat plus.
 Proof.
-Abort.
+  unfold is_left_permutative.
+  Search (_ + (_ + _) = _ + (_ + _)).
+  exact Nat.add_shuffle3.
+Qed.
 
-(*
 Corollary example_for_plus :
   forall ns : list nat,
     list_fold_left nat nat 0 plus ns = list_fold_right nat nat 0 plus ns.
@@ -2041,7 +2076,44 @@ Proof.
   Check (the_grand_finale nat nat plus plus_is_left_permutative 0).
   exact (the_grand_finale nat nat plus plus_is_left_permutative 0).
 Qed.
-*)
+
+Lemma mult_is_left_permutative :
+  is_left_permutative nat nat mult.
+Proof.
+  unfold is_left_permutative.
+  Search (_ * (_ * _) = _ * (_ * _)).
+  exact Nat.mul_shuffle3.
+Qed.
+
+Corollary example_for_mult :
+  forall ns : list nat,
+    list_fold_left nat nat 1 mult ns = list_fold_right nat nat 1 mult ns.
+Proof.
+  Check (the_grand_finale nat nat mult mult_is_left_permutative 1).
+  exact (the_grand_finale nat nat mult mult_is_left_permutative 1).
+Qed.
+
+Lemma successor_of_second_argument_is_left_permutative :
+  forall (V : Type),
+    is_left_permutative V nat (fun _ n => S n).
+Proof.
+  intro V.
+  unfold is_left_permutative.
+  intros v1 v2 v3.
+  reflexivity.
+Qed.
+
+Corollary example_for_successor_of_second_argument :
+  forall (V : Type)
+         (ns : list V),
+    list_fold_left V nat 0 (fun _ n => S n) ns = list_fold_right V nat 0 (fun _ n => S n) ns.
+Proof.
+  intro V.
+  Check (the_grand_finale V nat (fun _ n => S n) (successor_of_second_argument_is_left_permutative V) 0).
+  exact (the_grand_finale V nat (fun _ n => S n) (successor_of_second_argument_is_left_permutative V) 0).
+Qed.
+
+
 (* What do you make of this corollary?
    Can you think of more such corollaries?
 *)
@@ -2050,18 +2122,18 @@ Qed.
    p. subsidiary question: does the converse of Theorem the_grand_finale hold?
 *)
 
-(*
 Theorem the_grand_finale_converse :
   forall (V W : Type)
          (cons_case : V -> W -> W),
     (forall (nil_case : W)
             (vs : list V),
         list_fold_left  V W nil_case cons_case vs =
-        fold_right_list V W nil_case cons_case vs) ->
+        list_fold_right V W nil_case cons_case vs) ->
     is_left_permutative V W cons_case.
 Proof.
 Abort.
-*)
+  
+
 
 (* ********** *)
 
@@ -2126,6 +2198,78 @@ Lemma fold_unfold_nat_fold_left_S :
 Proof.
   fold_unfold_tactic nat_fold_left.
 Qed.
+
+Definition nat_nth_alt (V : Type) (n : nat) (vs : list V) : option V :=
+  nat_fold_right
+    (list V -> option V)
+    (fun vs =>
+       match vs with
+       | nil =>
+         None
+       | v :: vs' =>
+         Some v
+       end)
+    (fun ih vs =>
+       match vs with
+       | nil =>
+         None
+       | v :: vs' =>
+         ih vs'
+       end)
+    n vs.
+      
+Compute (test_nat_nth nat_nth_alt).
+
+Definition nat_nth_alt' (V : Type) (n : nat) (vs : list V) : option V :=
+  nat_fold_left
+    (list V -> option V)
+    (fun vs =>
+       match vs with
+       | nil =>
+         None
+       | v :: vs' =>
+         Some v
+       end)
+    (fun ih vs =>
+       match vs with
+       | nil =>
+         None
+       | v :: vs' =>
+         ih vs'
+       end)
+    n vs.
+      
+Compute (test_nat_nth nat_nth_alt').
+
+Definition list_nth_alt (V : Type) (vs : list V) (n : nat) : option V :=
+  list_fold_right
+    V (nat -> option V)
+    (fun _ => None)
+    (fun v ih n =>
+       match n with
+       | O =>
+         Some v
+       | S n' =>
+         ih n'
+       end)
+    vs n.
+
+Compute (test_list_nth list_nth_alt).
+
+Definition fake_list_nth (V : Type) (vs : list V) (n : nat) : option V :=
+  list_fold_left
+    V (nat -> option V)
+    (fun _ => None)
+    (fun v ih n =>
+       match n with
+       | O =>
+         Some v
+       | S n' =>
+         ih n'
+       end)
+    vs n.
+
+Compute (test_list_nth fake_list_nth).
 
 (* ********** *)
 
