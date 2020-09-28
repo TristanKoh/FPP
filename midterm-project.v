@@ -971,9 +971,7 @@ Theorem append_v0_is_not_commutative :
   exists (v1s v2s : list V),
     append_v0 V v1s v2s <> append_v0 V v2s v1s.
 Proof.
-  exists nat.
-  exists (1 :: nil).
-  exists (2 :: nil).
+  exists nat, (1 :: nil), (2 :: nil).
   unfold append_v0.
   rewrite -> (fold_unfold_append_v0_aux_cons nat 1 nil (2 :: nil)).
   rewrite -> (fold_unfold_append_v0_aux_nil nat (2 :: nil)).
@@ -983,22 +981,57 @@ Proof.
   intro H_absurd.
   discriminate H_absurd.
 Qed.
- 
-Theorem append_v0_is_not_commutative_more_generally :
-  forall (V : Type),
-  exists (v1s v2s : list V),
-    append_v0 V v1s v2s <> append_v0 V v2s v1s.
-Proof.
-  intro V.
-  (* hopefully can do something like
-  exists (v1 :: nil).
-  exists (v2 :: nil).
-  ...
-  discriminate
-  *)
-  (* PROBLEM HERE (Ex 4g) *)
-Abort.
 
+Theorem append_v0_is_not_commutative_if_the_type_has_at_least_two_distinct_values :
+  forall (V : Type)
+         (v1 v2 : V),
+    v1 <> v2 ->
+    (exists v1s v2s : list V,
+        append_v0 V v1s v2s <> append_v0 V v2s v1s).
+Proof.
+  intros V v1 v2.
+  unfold not, append_v0.
+  intro H_v1_not_equals_v2.
+  exists (v1 :: nil), (v2 :: nil).
+  rewrite -> (fold_unfold_append_v0_aux_cons V v1 nil (v2 :: nil)).
+  rewrite -> (fold_unfold_append_v0_aux_nil V (v2 :: nil)).
+  rewrite -> (fold_unfold_append_v0_aux_cons V v2 nil (v1 :: nil)).
+  rewrite -> (fold_unfold_append_v0_aux_nil V (v1 :: nil)).
+  intro H_tmp.
+  injection H_tmp as H_v1_equals_v2 H_v2_equals_v1.
+  Check (H_v1_not_equals_v2 H_v1_equals_v2).
+  exact (H_v1_not_equals_v2 H_v1_equals_v2).
+Qed.
+
+Theorem append_v0_is_commutative_if_the_type_has_only_one_distinct_value :
+  forall V : Type,
+    (forall v1 v2 : V,
+        v1 = v2) ->
+    (forall v1s v2s : list V,
+        append_v0 V v1s v2s = append_v0 V v2s v1s).
+Proof.
+  intros V.
+  intro H_all_values_are_equal.
+  intros v1s.
+  unfold append_v0.
+  induction v1s as [ | v1 v1s' IHv1s'].
+  - intro v2s.
+    rewrite -> (nil_is_right_neutral_of_append_v0_aux V v2s).
+    exact (fold_unfold_append_v0_aux_nil V v2s).
+  - intro v2s.
+    rewrite -> (fold_unfold_append_v0_aux_cons V v1 v1s' v2s).
+    induction v2s as [ | v2 v2s' IHv2s'].
+    + rewrite -> (fold_unfold_append_v0_aux_nil V (v1 :: v1s')).
+      rewrite -> (nil_is_right_neutral_of_append_v0_aux V v1s').
+      reflexivity.
+    + rewrite -> (fold_unfold_append_v0_aux_cons V v2 v2s' (v1 :: v1s')).
+      rewrite <- IHv2s'.
+      rewrite -> (IHv1s' (v2 :: v2s')).
+      rewrite -> (fold_unfold_append_v0_aux_cons V v2 v2s' v1s').
+      rewrite -> (IHv1s' v2s').
+      rewrite -> (H_all_values_are_equal v1 v2).
+      reflexivity.
+Qed.
 
 (*
    h. prove whether append is associative
