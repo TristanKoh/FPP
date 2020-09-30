@@ -1629,6 +1629,7 @@ Fixpoint map_v0_aux (V W : Type) (f : V -> W) (vs : list V) : list W :=
 Definition map_v0 (V W : Type) (f : V -> W) (vs : list V) : list W :=
   map_v0_aux V W f vs.
 
+
 (*
    c. state its associated fold-unfold lemmas
  *)
@@ -1690,8 +1691,6 @@ Qed.
 (*
    f. prove whether mapping a function over a list preserves the length of this list
  *)
-
-
 
 Proposition map_preserves_length :
   forall (V W : Type)
@@ -1786,6 +1785,26 @@ Proof.
     reflexivity.
 Qed.
 
+
+Proposition reverse_v1_and_map_commute_with_each_other :
+  forall (V W : Type)
+         (f : V -> W)
+         (vs : list V),
+    map_v0 V W f (reverse_v1 V vs) = reverse_v1 W (map_v0 V W f vs).
+Proof.
+  intros V W f vs.
+  unfold map_v0, reverse_v1.
+  induction vs as [ | v vs' IHvs'].
+  - rewrite -> (fold_unfold_reverse_v1_aux_nil V).
+    rewrite -> (fold_unfold_map_v0_aux_nil V W f).
+    rewrite -> (fold_unfold_reverse_v1_aux_nil W nil).
+    reflexivity.
+  - Check (fold_unfold_reverse_v1_aux_cons).
+    rewrite -> (fold_unfold_reverse_v1_aux_cons V v vs' nil).
+    Check (fold_unfold_map_v0_aux_cons).
+    rewrite -> (fold_unfold_map_v0_aux_cons V W f).
+    rewrite -> (fold_unfold_reverse_v1_aux_cons W (f v) (map_v0_aux V W f vs') (nil)).
+  
 (*
    i. define a unit-test function for map and verify that your implementation satisfies it
 *)
