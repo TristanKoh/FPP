@@ -1804,6 +1804,14 @@ Proof.
     Check (fold_unfold_map_v0_aux_cons).
     rewrite -> (fold_unfold_map_v0_aux_cons V W f).
     rewrite -> (fold_unfold_reverse_v1_aux_cons W (f v) (map_v0_aux V W f vs') (nil)).
+    rewrite -> (about_reverse_v1_aux V vs' (v :: nil)).
+    rewrite -> (about_reverse_v1_aux W (map_v0_aux V W f vs') (f v :: nil)).
+    rewrite -> (append_aux_and_map_aux_commute_with_each_other V W f (reverse_v1_aux V vs' nil) (v :: nil)).
+    rewrite -> IHvs'.
+    rewrite -> (fold_unfold_map_v0_aux_cons V W f v nil).
+    rewrite -> (fold_unfold_map_v0_aux_nil V W f).
+    reflexivity.
+Qed.
   
 (*
    i. define a unit-test function for map and verify that your implementation satisfies it
