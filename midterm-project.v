@@ -125,9 +125,11 @@ Proof.
   induction v1s as [ | v1  v1s' IHv1s'].
   - intros [ | v2 v2s' ] H_eqb_list.
     + reflexivity.
-    + discriminate.
+    + rewrite -> (fold_unfold_eqb_list_nil V eqb_v (v2 :: v2s')) in H_eqb_list.
+      discriminate H_eqb_list.
   - intros [ | v2 v2s' ] H_eqb_list.
-    + discriminate.
+    + rewrite -> (fold_unfold_eqb_list_cons V eqb_v v1 v1s' nil) in H_eqb_list.
+      discriminate H_eqb_list.
     + rewrite -> (fold_unfold_eqb_list_cons V eqb_v v1 v1s' (v2 :: v2s')) in H_eqb_list.
       Search (_ && _ = true -> _ /\_).
       assert (H_and_v_vs' := (andb_prop (eqb_v v1 v2)(eqb_list V eqb_v v1s' v2s'))).
@@ -149,13 +151,12 @@ Theorem completeness_of_equality_over_lists :
 Proof.
   intros V eqb_v H_v1_equals_v2_implies_eqb_V v1s.
   induction v1s as [ | v1 v1s' IHv1s'].
-  - intros [ | v2 v2s' ].
-    + reflexivity.
-    + discriminate.
-  - intros [ | v2 v2s' ].
-    + discriminate.
-    + intro H_v1s_equals_v2s.
-      rewrite -> (fold_unfold_eqb_list_cons V eqb_v v1 v1s' (v2 :: v2s')).
+  - intros [ | v2 v2s' ] H_v1s_equals_v2s.
+    + exact (fold_unfold_eqb_list_nil V eqb_v nil).
+    + discriminate H_v1s_equals_v2s.
+  - intros [ | v2 v2s' ] H_v1s_equals_v2s.
+    + discriminate H_v1s_equals_v2s.
+    + rewrite -> (fold_unfold_eqb_list_cons V eqb_v v1 v1s' (v2 :: v2s')).
       injection H_v1s_equals_v2s as H_v1_equals_v2 H_v1s'_equals_v2s'.
       rewrite -> (H_v1_equals_v2_implies_eqb_V v1 v2 H_v1_equals_v2).
       rewrite -> (IHv1s' v2s' H_v1s'_equals_v2s').
