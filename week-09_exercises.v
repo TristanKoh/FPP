@@ -314,23 +314,38 @@ Qed.
 
 (* Part i - Equivalence of m22_exp and m22_exp' *)
 
-Proposition definition_13_and_27_are_equivalent :
+Proposition proposition_29 :
+  forall (x : m22)
+         (n : nat),
+    m22_mul x (m22_exp x n) = m22_mul (m22_exp x n) x.
+Proof.
+  intros x n.
+  induction n as [ | n' IHn'].
+  - rewrite -> (fold_unfold_m22_exp_O x).
+    rewrite -> (proposition_12_left_neutral x).
+    exact (proposition_12_right_neutral x).
+  - rewrite -> (fold_unfold_m22_exp_S x n').
+    rewrite -> (proposition_10 x (m22_exp x n') x).
+    rewrite -> IHn'.
+    reflexivity.
+Qed.
+
+Corollary definition_13_and_27_are_equivalent :
   forall (x : m22)
          (n : nat),
     m22_exp x n = m22_exp' x n.
 Proof.
   intros x n.
   induction n as [ | n' IHn'].
-  - rewrite -> fold_unfold_m22_exp_O.
-    rewrite -> fold_unfold_m22_exp'_O.
+  - rewrite -> (fold_unfold_m22_exp_O x).
+    rewrite -> (fold_unfold_m22_exp'_O x).
     reflexivity.
-  - rewrite -> fold_unfold_m22_exp_S.
-    rewrite -> fold_unfold_m22_exp'_S.
-    rewrite -> IHn'.
-
-   
-Abort.
-
+  - rewrite -> (fold_unfold_m22_exp_S x n').
+    rewrite -> (fold_unfold_m22_exp'_S x n').
+    rewrite <- IHn'.
+    rewrite -> (proposition_29 x n').
+    reflexivity.
+Qed.
 
 (* Part j - Definition 35, Transposition of matrix *)
 
