@@ -74,23 +74,24 @@ Definition m22_mul (x y : m22) : m22 :=
 (* Part b: Proposition 10 - Associativity of matrix multiplication *)
 
 Proposition proposition_10 :
-  forall m22_1 m22_2 m22_3 : m22,
-    m22_mul m22_1 (m22_mul m22_2 m22_3) = m22_mul (m22_mul m22_1 m22_2) m22_3.
+  forall (x y z : m22),
+    m22_mul x (m22_mul y z) = m22_mul (m22_mul x y) z.
 Proof.
-  intros [x11 x12 x21 x22]
-         [y11 y12 y21 y22]
-         [z11 z12 z21 z22].
-  unfold m22_mul.  
+  intros [x11 x12 x21 x22] [y11 y12 y21 y22] [z11 z12 z21 z22].
+  unfold m22_mul.
   Search (_ * (_ + _)).
-  rewrite ->8 Nat.mul_add_distr_l.
-  rewrite ->8 Nat.mul_add_distr_r.
+  rewrite -> 8 Nat.mul_add_distr_l.
+  Search ((_ + _) * _).
+  rewrite -> 8 Nat.mul_add_distr_r.
   Search (_ * (_ * _)).
-  rewrite ->16 Nat.mul_assoc.
-  Search (_ + (_ + _)).  
-  rewrite ->8 Nat.add_assoc.
-
-Admitted.
-
+  rewrite -> 16 Nat.mul_assoc.
+  Search (_ + (_ + _ )).
+  rewrite -> (Nat.add_shuffle1 (x11 * y11 * z11)).
+  rewrite -> (Nat.add_shuffle1 (x11 * y11 * z12)).
+  rewrite -> (Nat.add_shuffle1 (x21 * y11 * z11)).
+  rewrite -> (Nat.add_shuffle1 (x21 * y11 * z12)).
+  reflexivity.
+Qed.
 
 (* Part c: Proposition 12 - Identity matrix is left and right neutral *)
 
@@ -403,14 +404,14 @@ Proof.
   - rewrite -> (fold_unfold_m22_exp_O (M22 x11 x12 x21 x22)).
     unfold m22_mul.
     unfold m22_one.
-    rewrite ->4 Nat.mul_1_r.
-    rewrite ->4 Nat.mul_0_r.
-    rewrite ->2 Nat.add_0_r.
-    rewrite ->2 Nat.add_0_l.
-    rewrite ->4 Nat.mul_1_l.
-    rewrite ->4 Nat.mul_0_l.
-    rewrite ->2 Nat.add_0_r.
-    rewrite ->2 Nat.add_0_l.
+    rewrite -> 4 Nat.mul_1_r.
+    rewrite -> 4 Nat.mul_0_r.
+    rewrite -> 2 Nat.add_0_r.
+    rewrite -> 2 Nat.add_0_l.
+    rewrite -> 4 Nat.mul_1_l.
+    rewrite -> 4 Nat.mul_0_l.
+    rewrite -> 2 Nat.add_0_r.
+    rewrite -> 2 Nat.add_0_l.
     reflexivity.    
   - rewrite -> (fold_unfold_m22_exp_S (M22 x11 x12 x21 x22)).
     Check (proposition_10).
