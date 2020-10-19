@@ -437,31 +437,260 @@ Qed.
 
 
 
-(* Week 7, Exercise 2*)
+(* Week 7 Exercise 2 *)
+
+(* ********** *)
+
+Definition is_a_sound_and_complete_equality_predicate (V : Type) (V_eqb : V -> V -> bool) :=
+  forall v1 v2 : V,
+    V_eqb v1 v2 = true <-> v1 = v2.
+
+(* ********** *)
+
+Check Bool.eqb.
+(* eqb : bool -> bool -> bool *)
+
+Definition bool_eqb (b1 b2 : bool) : bool :=
+  match b1 with
+  | true =>
+    match b2 with
+    | true =>
+      true
+    | false =>
+      false
+    end
+  | false =>
+    match b2 with
+    | true =>
+      false
+    | false =>
+      true
+    end
+  end.
+
+Lemma bool_eqb_is_reflexive :
+  forall b : bool,
+    bool_eqb b b = true.
+Proof.
+  intros [ | ]; unfold bool_eqb; reflexivity.
+Qed.
+
+Search (eqb _ _ = _ -> _ = _).
+(* eqb_prop: forall a b : bool, eqb a b = true -> a = b *)
+
+Proposition soundness_and_completeness_of_bool_eqb :
+  is_a_sound_and_complete_equality_predicate bool bool_eqb.
+Proof.
+  unfold is_a_sound_and_complete_equality_predicate.
+  intros [ | ] [ | ].
+  - split; unfold bool_eqb; intros _; reflexivity.
+  - split.
+    * intro H_absurd.
+      unfold bool_eqb in H_absurd.
+      discriminate H_absurd.
+    * intro H_absurd.
+      discriminate H_absurd.
+  - split.
+    * intro H_absurd.
+      unfold bool_eqb in H_absurd.
+      discriminate H_absurd.
+    * intro H_absurd.
+      discriminate H_absurd.
+  - split; unfold bool_eqb; intros _; reflexivity.
+Qed.    
+
+(* ***** *)
+
+Proposition soundness_and_completeness_of_Bool_eqb :
+  is_a_sound_and_complete_equality_predicate bool eqb.
+Proof.
+  unfold is_a_sound_and_complete_equality_predicate.
+  intros v1 v2.
+  Search (eqb _ _ = _ <-> _ = _).
+  exact (eqb_true_iff v1 v2).
+Qed.
+    
+(* ********** *)
+
+Check Nat.eqb.
+(* Nat.eqb : nat -> nat -> bool *)
+
+Fixpoint nat_eqb (n1 n2 : nat) : bool :=
+  match n1 with
+  | O =>
+    match n2 with
+    | O =>
+      true
+    | S n2' =>
+      false
+    end
+  | S n1' =>
+    match n2 with
+    | O =>
+      false
+    | S n2' =>
+      nat_eqb n1' n2'
+    end
+  end.
+
+Lemma fold_unfold_nat_eqb_O :
+  forall n2 : nat,
+    nat_eqb 0 n2 =
+    match n2 with
+    | O =>
+      true
+    | S _ =>
+      false
+    end.
+Proof.
+  fold_unfold_tactic nat_eqb.
+Qed.
+
+Lemma fold_unfold_nat_eqb_S :
+  forall n1' n2 : nat,
+    nat_eqb (S n1') n2 =
+    match n2 with
+    | O =>
+      false
+    | S n2' =>
+      nat_eqb n1' n2'
+    end.
+Proof.
+  fold_unfold_tactic nat_eqb.
+Qed.
+
+Search (Nat.eqb _ _ = true -> _ = _).
+(* beq_nat_true: forall n m : nat, (n =? m) = true -> n = m *)
+
+Proposition soundness_and_completeness_of_nat_eqb :
+  is_a_sound_and_complete_equality_predicate nat nat_eqb.
+Proof.
+  unfold is_a_sound_and_complete_equality_predicate.
+  intros v1.
+  induction v1 as [ | v1' IHv1'].
+  - intros [ | v2'].
+    * split; unfold nat_eqb; intros _; reflexivity.
+    * rewrite -> (fold_unfold_nat_eqb_O (S v2')).
+      split; intro H_absurd; discriminate H_absurd.
+  - intros [ | v2'].
+    * rewrite -> (fold_unfold_nat_eqb_S v1' 0).
+      split; intro H_absurd; discriminate H_absurd.
+    * rewrite -> (fold_unfold_nat_eqb_S v1' (S v2')).
+      assert (IHv1' := IHv1' v2').
+      destruct IHv1' as [H_nat_eqb_implies_equality H_v1_equals_v2_implies_nat_eqb].
+      split.
+      + intro H_nat_eqb.        
+        rewrite -> (H_nat_eqb_implies_equality H_nat_eqb).
+        reflexivity.
+      + intro H_S_v1_equals_S_v2.
+        Search (S _ = S _ -> _ = _).
+        assert (H_v1_equals_v2 := eq_add_S v1' v2' H_S_v1_equals_S_v2).
+        rewrite -> (H_v1_equals_v2_implies_nat_eqb H_v1_equals_v2).
+        reflexivity.
+Qed.
+        
+(* ***** *)
+
+Lemma fold_unfold_Nat_eqb_O :
+  forall n2 : nat,
+    0 =? n2 =
+    match n2 with
+    | O =>
+      true
+    | S _ =>
+      false
+    end.
+Proof.
+  fold_unfold_tactic Nat.eqb.
+Qed.
+
+Lemma fold_unfold_Nat_eqb_S :
+  forall n1' n2 : nat,
+    S n1' =? n2 =
+    match n2 with
+    | O =>
+      false
+    | S n2' =>
+      n1' =? n2'
+    end.
+Proof.
+  fold_unfold_tactic Nat.eqb.
+Qed.
+
+Proposition soundness_and_completeness_of_Nat_eqb :
+  is_a_sound_and_complete_equality_predicate nat Nat.eqb.
+Proof.
+  unfold is_a_sound_and_complete_equality_predicate.
+  intros v1 v2.
+  Search (Nat.eqb _ _ = true <-> _ = _).
+  exact (Nat.eqb_eq v1 v2).
+Qed.
+
+(* ********** *)
+
+Definition pair_eqb (V W : Type) (V_eqb : V -> V -> bool) (W_eqb : W -> W -> bool) (p1 p2 : V * W) : bool :=
+  match p1 with
+  | (v1, w1) =>
+    match p2 with
+    | (v2, w2) =>
+      V_eqb v1 v2 && W_eqb w1 w2
+    end
+  end.
+
+Proposition soundness_and_completeness_of_pair_eqb :
+  forall (V W : Type)
+         (V_eqb : V -> V -> bool)
+         (W_eqb : W -> W -> bool),
+    is_a_sound_and_complete_equality_predicate V V_eqb ->
+    is_a_sound_and_complete_equality_predicate W W_eqb ->
+    forall p1 p2 : V * W,
+      pair_eqb V W V_eqb W_eqb p1 p2 = true <-> p1 = p2.
+Proof.
+  intros V W V_eqb W_eqb.
+  unfold is_a_sound_and_complete_equality_predicate.
+  intros H_soundness_and_completeness_of_V_eqb H_soundness_and_completeness_of_W_eqb.
+  intros [v1 w1] [v2 w2].
+  unfold pair_eqb.
+  assert (H_soundness_and_completeness_of_V_eqb' := H_soundness_and_completeness_of_V_eqb v1 v2).
+  assert (H_soundness_and_completeness_of_W_eqb' := H_soundness_and_completeness_of_W_eqb w1 w2).
+  destruct H_soundness_and_completeness_of_V_eqb' as [H_V_eqb_implies_equality H_v1_equals_v2_implies_eqb].
+  destruct H_soundness_and_completeness_of_W_eqb' as [H_W_eqb_implies_equality H_w1_equals_w2_implies_eqb].
+  split.
+  - Search (_ && _ = true).
+    intros H_V_eqb_and_W_eqb.
+    assert (H_V_eqb_and_W_eqb' := andb_prop (V_eqb v1 v2) (W_eqb w1 w2)  H_V_eqb_and_W_eqb).
+    destruct H_V_eqb_and_W_eqb' as [H_V_eqb H_W_eqb].
+    assert (H_v1_equals_v2 := H_V_eqb_implies_equality H_V_eqb).
+    assert (H_w1_equals_w2 := H_W_eqb_implies_equality H_W_eqb).
+    rewrite -> H_v1_equals_v2.
+    rewrite -> H_w1_equals_w2.
+    reflexivity.
+  - intro H_equality_of_pair.
+    injection H_equality_of_pair as H_v1_equals_v2 H_w1_equals_w2.
+    assert (H_V_eqb := H_v1_equals_v2_implies_eqb H_v1_equals_v2).
+    assert (H_W_eqb := H_w1_equals_w2_implies_eqb H_w1_equals_w2).
+    Search (_ && _ = true).
+    assert (H_V_eqb_and_W_eqb := conj H_V_eqb H_W_eqb).
+    exact (andb_true_intro H_V_eqb_and_W_eqb).
+Qed.    
+  
+
+(* ********** *)
 
 
+Definition pair_nat_bool_eqb (p1 p2: nat * bool) : bool :=
+  pair_eqb nat bool nat_eqb bool_eqb p1 p2.
+
+Proposition soundness_and_completeness_of_pair_nat_bool_eqb :
+  is_a_sound_and_complete_equality_predicate (nat * bool) pair_nat_bool_eqb.
+Proof.
+  unfold is_a_sound_and_complete_equality_predicate.
+  Check (soundness_and_completeness_of_pair_eqb nat bool nat_eqb bool_eqb soundness_and_completeness_of_nat_eqb soundness_and_completeness_of_bool_eqb).
+  exact (soundness_and_completeness_of_pair_eqb nat bool nat_eqb bool_eqb soundness_and_completeness_of_nat_eqb soundness_and_completeness_of_bool_eqb).
+Qed.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+(* ********** *)
 
 (* Week 9 Exercise 2 *)
 
@@ -507,9 +736,6 @@ Fixpoint mm22_exp (x : mm22) (n : nat) : mm22 :=
   | S n' =>
     mm22_mul (mm22_exp x n') x
   end.
-
-
-
 
 (* ********** *)
 
