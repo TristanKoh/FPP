@@ -101,12 +101,12 @@ Proof.
   intros [x11 x12 x21 x22].
   unfold m22_one, m22_mul.
   Search (1 * _).
-  rewrite ->4 Nat.mul_1_l.
+  rewrite -> 4 Nat.mul_1_l.
   Search (0 * _).
-  rewrite ->4 Nat.mul_0_l.
+  rewrite -> 4 Nat.mul_0_l.
   Search (_ + 0).
-  rewrite ->2 Nat.add_0_r.
-  rewrite ->2 Nat.add_0_l.
+  rewrite -> 2 Nat.add_0_r.
+  rewrite -> 2 Nat.add_0_l.
   reflexivity.
 Qed.
 
@@ -116,10 +116,10 @@ Proposition proposition_12_right_neutral :
 Proof.
   intros [x11 x12 x21 x22].
   unfold m22_one, m22_mul.
-  rewrite ->4 Nat.mul_1_r.
+  rewrite -> 4 Nat.mul_1_r.
   rewrite -> 4 Nat.mul_0_r.
-  rewrite ->2 Nat.add_0_l.
-  rewrite ->2 Nat.add_0_r.
+  rewrite -> 2 Nat.add_0_l.
+  rewrite -> 2 Nat.add_0_r.
   reflexivity.
 Qed.
 
@@ -274,9 +274,9 @@ Proof.
     rewrite -> (fold_unfold_m22_exp_S (M22 1 1 1 0) (S n')).
     rewrite -> IHn'.
     unfold m22_mul.
-    rewrite ->3 Nat.mul_1_r.
-    rewrite ->2 Nat.mul_0_r.
-    rewrite ->2 Nat.add_0_r.
+    rewrite -> 3 Nat.mul_1_r.
+    rewrite -> 2 Nat.mul_0_r.
+    rewrite -> 2 Nat.add_0_r.
     Check (fold_unfold_fib_aux_S).
     rewrite <- (fold_unfold_fib_aux_S (S n')).
     rewrite <- (fold_unfold_fib_aux_S n').
@@ -433,8 +433,22 @@ Qed.
 (* Part m - Exericse 40*)
 
 
-
-
+Proposition proposition_33 :
+  forall (n : nat),
+    m22_exp (M22 1 0
+                 1 1) n =
+    (M22 1 0
+         n 1).
+Proof.
+  intro n.
+  rewrite <- (property_36 (M22 1 0 1 1)).
+  unfold m22_transpose at 2.
+  rewrite <- (proposition_38 (M22 1 1 0 1) n).
+  rewrite -> (proposition_14 n).
+  unfold m22_transpose.
+  reflexivity.
+Qed.
+    
 
 
 (* Week 7 Exercise 2 *)
