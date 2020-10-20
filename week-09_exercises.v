@@ -33,9 +33,6 @@ Require Import Arith Bool.
 Inductive m22 : Type :=
 | M22 : nat -> nat -> nat -> nat -> m22.
 
-
-(* Function to add 2x2 matrices *)
-
 Definition m22_add (x y : m22) : m22 :=
   match x with
   | M22 x11 x12
