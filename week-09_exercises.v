@@ -411,33 +411,6 @@ Proof.
 Qed.
 
 
-Proposition proposition_29 :
-  forall (x : m22)
-         (n : nat),
-    m22_mul x (m22_exp x n) = m22_mul (m22_exp x n) x.
-Proof.
-  intros [x11 x12 x21 x22] n.
-  induction n as [ | n' IHn'].
-  - rewrite -> (fold_unfold_m22_exp_O (M22 x11 x12 x21 x22)).
-    unfold m22_mul.
-    unfold m22_one.
-    rewrite -> 4 Nat.mul_1_r.
-    rewrite -> 4 Nat.mul_0_r.
-    rewrite -> 2 Nat.add_0_r.
-    rewrite -> 2 Nat.add_0_l.
-    rewrite -> 4 Nat.mul_1_l.
-    rewrite -> 4 Nat.mul_0_l.
-    rewrite -> 2 Nat.add_0_r.
-    rewrite -> 2 Nat.add_0_l.
-    reflexivity.    
-  - rewrite -> (fold_unfold_m22_exp_S (M22 x11 x12 x21 x22)).
-    Check (proposition_10).
-    rewrite -> (proposition_10 (M22 x11 x12 x21 x22) (m22_exp (M22 x11 x12 x21 x22) n') (M22 x11 x12 x21 x22)).
-    rewrite -> IHn'.
-    reflexivity.
-Qed.
-
-    
 Proposition proposition_38 :
   forall (x : m22)
          (n : nat),
