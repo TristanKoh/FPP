@@ -210,6 +210,24 @@ Compute (m22_exp (M22 1 1
 Compute (m22_exp (M22 1 1
                       1 0) 7).
 
+Notation "A =n= B" :=
+  (beq_nat A B) (at level 70, right associativity).
+
+Definition test_fib (candidate : nat -> nat) :=
+  (candidate 0 =n= 0)
+  &&
+  (candidate 1 =n= 1)
+  &&
+  (candidate 2 =n= 1)
+  &&
+  (candidate 3 =n= 2)
+  &&
+  (candidate 4 =n= 3)
+  &&
+  (candidate 5 =n= 5)
+  &&
+  (candidate 6 =n= 8).
+
 
 Fixpoint fib_aux (n : nat) : nat :=
   match n with
@@ -226,6 +244,8 @@ end.
 
 Definition fib (n : nat) : nat :=
   fib_aux n.
+
+Compute (test_fib fib).
 
 Lemma fold_unfold_fib_aux_O :
   fib_aux 0 =
