@@ -503,7 +503,11 @@ Proposition soundness_and_completeness_of_bool_eqb :
 Proof.
   unfold is_a_sound_and_complete_equality_predicate.
   intros [ | ] [ | ].
-  - split; unfold bool_eqb; intros _; reflexivity.
+  - split.
+    * intro H_bool_eqb.
+      reflexivity.
+    * intro H_obvious.
+      exact (bool_eqb_is_reflexive true).
   - split.
     * intro H_absurd.
       unfold bool_eqb in H_absurd.
@@ -516,7 +520,11 @@ Proof.
       discriminate H_absurd.
     * intro H_absurd.
       discriminate H_absurd.
-  - split; unfold bool_eqb; intros _; reflexivity.
+  - split.
+    * intro H_bool_eqb.
+      reflexivity.
+    * intro H_obvious.
+      exact (bool_eqb_is_reflexive false).
 Qed.    
 
 (* ***** *)
@@ -589,7 +597,11 @@ Proof.
   intros v1.
   induction v1 as [ | v1' IHv1'].
   - intros [ | v2'].
-    * split; unfold nat_eqb; intros _; reflexivity.
+    * split.
+      + intros _.
+        reflexivity.
+      + intros _.
+        exact (fold_unfold_nat_eqb_O 0).
     * rewrite -> (fold_unfold_nat_eqb_O (S v2')).
       split; intro H_absurd; discriminate H_absurd.
   - intros [ | v2'].
