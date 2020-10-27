@@ -362,6 +362,14 @@ Qed.
 
 (* Exercise 4b *)
 
+Lemma eureka_lemma_True :
+  forall (x : nat),
+    x = x -> True.
+Proof.
+  intros x H_x.
+  reflexivity.
+Qed.
+
 Lemma soundness_of_wb_ds_aux' :
   forall (t : binary_tree)
          (w : nat),
@@ -395,13 +403,15 @@ Proof.
            rewrite <- W2.
            unfold andb.
            symmetry in H_aux.
-           Search (true = _).
-           Check (Is_true_eq_right).
-           Check (Is_true_eq_left (w1 =? w2)).
-           assert (H_w1_w2' := (Is_true_eq_left (w1 =? w2))).
-           assert (H_w1_w2' := (H_w1_w2' H_w1_w2)).
-           unfold Is_true in H_w1_w2'.
+           Search (_ =? _).
+           assert (H_w1_w2'' := (beq_nat_true w1 w2)).
+           assert (H_w1_w2'' := (H_w1_w2'' H_w1_w2)).
+           rewrite -> H_w1_w2''.
+           split.
+           *** Check (eureka_lemma_True w2).
+               assert (H_True := (eureka_lemma_True w2)).
 
+                     
            (*
            split; [exact H_w1_w2' | exact H_aux].
         ** discriminate H_aux.
@@ -454,6 +464,17 @@ Proof.
     + left.
       exists (w1 + w2).
       unfold andb.
+      split.
+      * reflexivity.
+      * split.
+        ** reflexivity.
+        ** Search (_ =? _).
+           assert (H_w1_w2' := (beq_nat_true w1 w2)).
+           assert (H_w1_w2' := (H_w1_w2' H_w1_w2)).
+           rewrite -> H_w1_w2'.
+           Search (_ /\ _).
+           Search (_ = _).
+           
       (* 
       split; [reflexivity | (split; reflexivity)].
     + right.
