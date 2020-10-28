@@ -362,13 +362,16 @@ Qed.
 
 (* Exercise 4b *)
 
+
 Lemma eureka_lemma_True :
   forall (x : nat),
-    x = x -> True.
+     x = x -> True.
 Proof.
   intros x H_x.
   reflexivity.
 Qed.
+
+
 
 Lemma soundness_of_wb_ds_aux_prop :
   forall (t : binary_tree)
@@ -397,27 +400,38 @@ Proof.
            Check (IHt1 w1 (eq_refl (Some w1))).
            destruct (IHt1 w1 (eq_refl (Some w1))) as [Bt1 W1].
            destruct (IHt2 w2 (eq_refl (Some w2))) as [Bt2 W2].
+           Check ((True /\ True) = True).
            rewrite -> Bt1.
            rewrite -> Bt2.
            rewrite <- W1.
            rewrite <- W2.
-           unfold andb.
            symmetry in H_aux.
-           Search (_ =? _).
-           assert (H_w1_w2'' := (beq_nat_true w1 w2)).
-           assert (H_w1_w2'' := (H_w1_w2'' H_w1_w2)).
-           rewrite -> H_w1_w2''.
            split.
-           *** Check (eureka_lemma_True w2).
-               assert (H_True := (eureka_lemma_True w2)).
-
-                     
-           (*
-           split; [exact H_w1_w2' | exact H_aux].
+           
+           ***
+             Search (_ =? _).
+             assert (H_w1_w2'' := (beq_nat_true w1 w2)).
+             assert (H_w1_w2'' := (H_w1_w2'' H_w1_w2)).
+             Search (Is_true).         
+             Check (Is_true).
+             Search (_ =? _).
+             assert (H_w1_w2' := (Is_true_eq_left (w1 =? w2))).
+             assert (H_w1_w2' := (H_w1_w2' H_w1_w2)).
+             unfold Is_true in H_w1_w2'.
+             rewrite -> H_w1_w2'' in H_w1_w2'.
+             rewrite -> H_w1_w2''.
+             Check  (Nat.eqb_refl).
+             rewrite -> (Nat.eqb_refl w2) in H_w1_w2'.
+             Check (eureka_lemma_True w2).
+             (* PROBLEM HERE *)
+             
+       (*  
+           split; [exact H_w1_w2 | exact H_aux].
         ** discriminate H_aux.
       * discriminate H_aux.
     + discriminate H_aux.
-    *)
+        *)
+             
 Admitted.
 
 
@@ -522,9 +536,12 @@ Proof.
   - rewrite -> H_aux.
     reflexivity.
   - rewrite -> H_t in H_b.
-    (* 
-    discriminate H_b.
-*)
+    Search (True = False).
+    rewrite -> H_aux.
+    Check (andb_prop).
+    Check (andb_true_intro).
+
+    
 Abort.
 
 
