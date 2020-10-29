@@ -726,9 +726,18 @@ Proof.
     rewrite -> IHt1.
     rewrite -> IHt2.
     rewrite -> fold_unfold_binary_tree_fold_Node.
-    fold (wb_ds_aux_alt t1).
-    fold (wb_ds_aux_alt t2).
+    unfold wb_ds_aux_alt.
     reflexivity.
+Qed.
+
+Theorem equivalence_of_wb_ds_and_wb_ds_alt :
+  forall t : binary_tree,
+    wb_ds t = wb_ds_alt t.
+Proof.
+  intro t.
+  unfold wb_ds, wb_ds_alt.
+  rewrite -> (equivalence_of_wb_ds_aux_and_wb_ds_aux_alt t).
+  reflexivity.
 Qed.
 
 
