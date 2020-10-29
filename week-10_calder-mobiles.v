@@ -371,19 +371,21 @@ Proof.
   reflexivity.
 Qed.
 
-
+  
 
 Lemma soundness_of_wb_ds_aux_prop :
   forall (t : binary_tree)
          (w : nat),
     wb_ds_aux t = Some w ->
-    balanced t = True /\ w = weight t.
+    balanced t /\ w = weight t.
 Proof.
   intro t.
   induction t as [w' | t1 IHt1 t2 IHt2].
   - intros w H_aux.
     split.
-    -- exact (fold_unfold_balanced_Leaf w).
+    -- Check (fold_unfold_balanced_Leaf w').
+       rewrite -> (fold_unfold_balanced_Leaf w').
+       reflexivity.
     -- rewrite -> (fold_unfold_weight_Leaf).
        rewrite -> (fold_unfold_wb_ds_aux_Leaf) in H_aux.
        injection H_aux as H_aux.
@@ -400,51 +402,37 @@ Proof.
            Check (IHt1 w1 (eq_refl (Some w1))).
            destruct (IHt1 w1 (eq_refl (Some w1))) as [Bt1 W1].
            destruct (IHt2 w2 (eq_refl (Some w2))) as [Bt2 W2].
-           Check ((True /\ True) = True).
-           rewrite -> Bt1.
-           rewrite -> Bt2.
-           rewrite <- W1.
-           rewrite <- W2.
-           symmetry in H_aux.
            split.
-           
-           ***
-             Search (_ =? _).
-             assert (H_w1_w2'' := (beq_nat_true w1 w2)).
-             assert (H_w1_w2'' := (H_w1_w2'' H_w1_w2)).
-             Search (Is_true).         
-             Check (Is_true).
-             Search (_ =? _).
-             assert (H_w1_w2' := (Is_true_eq_left (w1 =? w2))).
-             assert (H_w1_w2' := (H_w1_w2' H_w1_w2)).
-             unfold Is_true in H_w1_w2'.
-             rewrite -> H_w1_w2'' in H_w1_w2'.
-             rewrite -> H_w1_w2''.
-             Check  (Nat.eqb_refl).
-             rewrite -> (Nat.eqb_refl w2) in H_w1_w2'.
-             Check (eureka_lemma_True w2).
-             (* PROBLEM HERE *)
-             
-       (*  
-           split; [exact H_w1_w2 | exact H_aux].
+           *** split.
+               exact Bt1.
+               split.
+               **** exact Bt2.
+               **** rewrite <- W1.
+                    rewrite <- W2.
+                    Check (beq_nat_true).
+                    assert (H_w1_w2' := (beq_nat_true w1 w2)).
+                    assert (H_w1_w2' := (H_w1_w2' H_w1_w2)).
+                    exact H_w1_w2'.
+           *** rewrite -> W1 in H_aux.
+               rewrite -> W2 in H_aux.
+               symmetry in H_aux.
+               exact H_aux.
         ** discriminate H_aux.
       * discriminate H_aux.
     + discriminate H_aux.
-        *)
-             
-Admitted.
+Qed.
 
 
 Theorem soundness_of_wb_ds_prop :
   forall t : binary_tree,
     wb_ds t = true ->
-    balanced t = True.
+    balanced t.
 Proof.
   intros t H_t.
   unfold wb_ds in H_t.
   case (wb_ds_aux t) as [w | ] eqn:H_aux.
   + Check (soundness_of_wb_ds_aux_prop t w H_aux).
-    destruct (soundness_of_wb_ds_aux_prop t w H_aux) as [ly _].
+    destruct (soundness_of_wb_ds_aux_prop t w H_aux) as [ly _].    
     exact ly.
   + discriminate H_t.
 Qed.
@@ -453,9 +441,9 @@ Qed.
 Lemma completeness_of_wb_ds_aux_prop :
   forall t : binary_tree,
     (exists w : nat,
-        wb_ds_aux t = Some w /\ w = weight t /\ balanced t = True)
+        wb_ds_aux t = Some w /\ w = weight t /\ balanced t)
     \/
-    (wb_ds_aux t = None /\ balanced t = False).
+    (wb_ds_aux t = None /\ balanced t).
 Proof.
   intro t.
   induction t as [n | t1 [[w1 [Ht1 [W1 B1]]] | [Ht1 B1]] t2 [[w2 [Ht2 [W2 B2]]] | [Ht2 B2]]].
@@ -472,23 +460,17 @@ Proof.
     rewrite -> Ht2.
     rewrite <- W1.
     rewrite <- W2.
-    rewrite -> B1.
-    rewrite -> B2.
-    case (w1 =? w2) eqn:H_w1_w2.
-    + left.
-      exists (w1 + w2).
-      unfold andb.
-      split.
-      * reflexivity.
-      * split.
-        ** reflexivity.
-        ** Search (_ =? _).
-           assert (H_w1_w2' := (beq_nat_true w1 w2)).
-           assert (H_w1_w2' := (H_w1_w2' H_w1_w2)).
-           rewrite -> H_w1_w2'.
-           Search (_ /\ _).
-           Search (_ = _).
-           
+    left.
+    exists w1.
+    split.
+    + case (w1 =? w2) eqn:H_w1_w2.
+      * assert (H_w1_w2' := (beq_nat_true w1 w2)).
+        assert (H_w1_w2' := (H_w1_w2' H_w1_w2)).
+        rewrite H_w1_w2'.
+        
+        
+        
+   
       (* 
       split; [reflexivity | (split; reflexivity)].
     + right.
@@ -527,7 +509,7 @@ Admitted.
 
 Theorem completeness_of_wb_ds_prop :
   forall t : binary_tree,
-    balanced t = True ->
+    balanced t ->
     wb_ds t = true.
 Proof.
   intros t H_t.
@@ -535,13 +517,8 @@ Proof.
   destruct (completeness_of_wb_ds_aux_prop t) as [[w [H_aux [H_w H_b]]] | [H_aux H_b]].
   - rewrite -> H_aux.
     reflexivity.
-  - rewrite -> H_t in H_b.
-    Search (True = False).
-    rewrite -> H_aux.
-    Check (andb_prop).
-    Check (andb_true_intro).
+  - rewrite -> H_aux.
 
-    
 Abort.
 
 
