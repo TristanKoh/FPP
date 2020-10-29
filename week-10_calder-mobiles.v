@@ -361,16 +361,6 @@ Qed.
 
 
 (* Exercise 4b *)
-
-
-Lemma eureka_lemma_True :
-  forall (x : nat),
-     x = x -> True.
-Proof.
-  intros x H_x.
-  reflexivity.
-Qed.
-
   
 
 Lemma soundness_of_wb_ds_aux_prop :
@@ -443,7 +433,7 @@ Lemma completeness_of_wb_ds_aux_prop :
     (exists w : nat,
         wb_ds_aux t = Some w /\ w = weight t /\ balanced t)
     \/
-    (wb_ds_aux t = None /\ balanced t).
+    (wb_ds_aux t = None /\ ~(balanced t)).
 Proof.
   intro t.
   induction t as [n | t1 [[w1 [Ht1 [W1 B1]]] | [Ht1 B1]] t2 [[w2 [Ht2 [W2 B2]]] | [Ht2 B2]]].
@@ -460,52 +450,57 @@ Proof.
     rewrite -> Ht2.
     rewrite <- W1.
     rewrite <- W2.
-    left.
-    exists w1.
-    split.
-    + case (w1 =? w2) eqn:H_w1_w2.
-      * assert (H_w1_w2' := (beq_nat_true w1 w2)).
-        assert (H_w1_w2' := (H_w1_w2' H_w1_w2)).
-        rewrite H_w1_w2'.
-        
-        
-        
-   
-      (* 
-      split; [reflexivity | (split; reflexivity)].
+    case (w1 =? w2) eqn:H_w1_w2.
+    + left.
+      exists (w1 + w2).
+      split.
+      * reflexivity.
+      * split.
+        -- reflexivity.
+        -- split.
+           ++ exact B1.
+           ++ split.
+              ** exact B2.
+              ** exact (beq_nat_true w1 w2 H_w1_w2).
     + right.
-      unfold andb.
-      split; reflexivity.
+      split.
+      * reflexivity.
+      * unfold not.
+        intros [_ [_ H_w1_equals_w2]].
+        assert (H_w1_w2' := beq_nat_false w1 w2 H_w1_w2).
+        contradiction.
   - rewrite -> fold_unfold_wb_ds_aux_Node.
     rewrite -> fold_unfold_weight_Node.
     rewrite -> fold_unfold_balanced_Node.
     rewrite -> Ht1.
     rewrite -> Ht2.
     right.
-    rewrite -> B1.
-    rewrite -> B2.
-    unfold andb.
-    split; reflexivity.
+    split.
+    * reflexivity.
+    * unfold not.
+      intros [_ [H_B2 _]].
+      contradiction.
   - rewrite -> fold_unfold_wb_ds_aux_Node.
     rewrite -> fold_unfold_weight_Node.
     rewrite -> fold_unfold_balanced_Node.
     rewrite -> Ht1.
     right.
-    rewrite -> B1.
-    rewrite -> B2.
-    unfold andb.
-    split; reflexivity.
+    split.
+    * reflexivity.
+    * unfold not.
+      intros [H_B1 _].
+      contradiction.
   - rewrite -> fold_unfold_wb_ds_aux_Node.
     rewrite -> fold_unfold_weight_Node.
     rewrite -> fold_unfold_balanced_Node.
     rewrite -> Ht1.
     right.
-    rewrite -> B1.
-    unfold andb.
-    split; reflexivity.
-*)
-Admitted.
-  
+    split.
+    * reflexivity.
+    * unfold not.
+      intros [_ [H_B2 _]].
+      contradiction.
+Qed.
 
 Theorem completeness_of_wb_ds_prop :
   forall t : binary_tree,
@@ -517,9 +512,9 @@ Proof.
   destruct (completeness_of_wb_ds_aux_prop t) as [[w [H_aux [H_w H_b]]] | [H_aux H_b]].
   - rewrite -> H_aux.
     reflexivity.
-  - rewrite -> H_aux.
+  - contradiction.
+Qed.
 
-Abort.
 
 
 (* Exercise 5 *)
