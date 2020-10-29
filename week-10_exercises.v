@@ -1,7 +1,5 @@
-(* week-10_calder-mobiles.v *)
+(* week-10_exercises.v *)
 (* FPP 2020 - YSC3236 2020-2021, Sem1 *)
-(* Olivier Danvy <danvy@yale-nus.edu.sg> *)
-(* Version of 25 Oct 2020 *)
 
 (* ********** *)
 
@@ -21,6 +19,8 @@ A0191222R
 *)
 
 (* ********* *)
+
+(* Paraphernalia: *)
 
 Ltac fold_unfold_tactic name := intros; unfold name; fold name; reflexivity.
 
@@ -995,4 +995,4 @@ Qed.
  
 (* ********** *)
 
-(* end of week-10_calder-mobiles.v *)
+(* end of week-10_exercises.v *)
