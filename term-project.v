@@ -609,7 +609,14 @@ Proposition there_is_at_most_one_fetch_decode_execute_loop :
            (ds : data_stack),
       fetch_decode_execute_loop1 bcis' ds = fetch_decode_execute_loop2 bcis' ds.
 Proof.
-Abort. 
+  intros fetch_decode_execute_loop1 fetch_decode_execute_loop2.
+  intros H_loop1 H_loop2.
+  intros bcis' ds.
+  induction bcis' as [ | bci bcis'' IHbcis''].
+  - unfold specification_of_fetch_decode_execute_loop.
+    (* PROBLEM HERE *)
+  
+Admitted.
 
 
 Fixpoint fetch_decode_execute_loop (bcis' : list byte_code_instruction) (ds : data_stack) : result_of_decoding_and_execution :=
@@ -722,6 +729,7 @@ Proof.
   fold_unfold_tactic List.app.
 Qed.
 
+
 Theorem concatenation_of_two_list_bcis_with_ds :
   forall (bcis1 bcis2 : list byte_code_instruction)
          (ds : data_stack),
@@ -734,13 +742,40 @@ Theorem concatenation_of_two_list_bcis_with_ds :
         fetch_decode_execute_loop bcis1 ds = KO s ->
         fetch_decode_execute_loop (bcis1 ++ bcis2) ds = KO s).
 Proof.
-  intros bcis1 bcis2 ds.
+  intros bcis1.
+  induction bcis1 as [ | bci1 bcis1' IHbcis1'].
+  intros bcis2 ds.
   split.
-  - intros ds'.
-    intro H_fetch_decode_execute.
-    destruct ds'.
-    destruct ds.
-    * Check (fold_unfold_fetch_decode_execute_loop_nil).
+  * intros ds' H_fetch_decode_execute_loop.
+    rewrite -> fold_unfold_append_nil.
+    rewrite -> fold_unfold_fetch_decode_execute_loop_nil in H_fetch_decode_execute_loop.
+      injection H_fetch_decode_execute_loop as H_ds.
+      rewrite -> H_ds.
+      reflexivity.
+  * intros s H_fetch_decode_execute_loop.
+    rewrite -> fold_unfold_fetch_decode_execute_loop_nil in H_fetch_decode_execute_loop.
+    discriminate.
+  * intros bcis2 ds.
+    split.
+    ** intros ds' H_fetch_decode_execute_loop.
+       rewrite -> fold_unfold_append_cons.
+       rewrite -> fold_unfold_fetch_decode_execute_loop_cons.
+       rewrite -> fold_unfold_fetch_decode_execute_loop_cons in H_fetch_decode_execute_loop.
+       destruct (decode_execute bci1 ds) as [ ds'' | s].
+       *** destruct (IHbcis1' bcis2 ds'') as [IHds'' IHs].
+           exact (IHds'' ds' H_fetch_decode_execute_loop).
+       *** destruct (IHbcis1' bcis2 ds') as [IHds'' IHs].
+           discriminate H_fetch_decode_execute_loop.
+    ** intros s H_fetch_decode_execute_loop.
+       rewrite -> fold_unfold_append_cons.
+       rewrite -> fold_unfold_fetch_decode_execute_loop_cons.
+       rewrite -> fold_unfold_fetch_decode_execute_loop_cons in H_fetch_decode_execute_loop.
+       destruct (decode_execute bci1 ds) as [ds' | s'].
+       *** destruct (IHbcis1' bcis2 ds') as [IHds' IHs].
+           exact (IHs s H_fetch_decode_execute_loop).
+       *** exact H_fetch_decode_execute_loop.
+Qed. 
+
       
     
 
@@ -773,7 +808,145 @@ Definition specification_of_run (run : target_program -> expressible_value) :=
    a. time permitting, prove that the definition above specifies at most one function;
    b. implement this function; and
    c. verify that your function satisfies the specification.
-*)
+ *)
+
+Definition run (tp : target_program) : expressible_value :=
+  match tp with
+  | Target_program bcis =>
+    match fetch_decode_execute_loop bcis nil with
+    | OK nil =>
+      Expressible_msg "no result on the data stack"
+    | OK (n :: nil) =>
+      Expressible_nat n
+    | OK (n :: n' :: ds') =>
+      Expressible_msg "too many results on the data stack"
+    | KO s =>
+      Expressible_msg s
+    end
+  end.
+
+
+
+Lemma there_is_at_most_one_specification_of_run_aux :
+  forall (fetch_decode_execute_loop : list byte_code_instruction -> data_stack -> result_of_decoding_and_execution)
+         (bcis : list byte_code_instruction),
+    (exists ds : data_stack,
+        fetch_decode_execute_loop bcis nil = OK ds)
+        \/
+        (exists s : string,
+            fetch_decode_execute_loop bcis nil = KO s).
+Proof.
+  intros fetch_decode_execute_loop bcis.
+  destruct (fetch_decode_execute_loop bcis nil) as [ds | s].
+  - left.
+    exists ds.
+    reflexivity.
+  - right.
+    exists s.
+    reflexivity.
+Qed.
+
+
+Proposition there_is_at_most_one_specification_of_run :
+  forall (decode_execute : byte_code_instruction -> data_stack -> result_of_decoding_and_execution),
+    specification_of_decode_execute decode_execute ->
+    forall (fetch_decode_execute_loop : list byte_code_instruction -> data_stack -> result_of_decoding_and_execution),
+      specification_of_fetch_decode_execute_loop fetch_decode_execute_loop ->
+      forall (run1 run2 : target_program -> expressible_value),
+        specification_of_run run1 ->
+        specification_of_run run2 ->
+        forall (tp : target_program),
+          run1 tp = run2 tp.
+Proof.
+  intros decode_execute H_decode_execute fetch_decode_execute_loop H_fetch_decode_execute_loop run1 run2 H_run1 H_run2 tp.
+  Check (H_run1 fetch_decode_execute_loop H_fetch_decode_execute_loop).
+  destruct (H_run1 fetch_decode_execute_loop H_fetch_decode_execute_loop) as
+      [H_run1_nil [H_run1_n_nil [H_run1_n_n'_nil H_run1_s]]].
+  destruct (H_run2 fetch_decode_execute_loop H_fetch_decode_execute_loop) as
+      [H_run2_nil [H_run2_n_nil [H_run2_n_n'_nil H_run2_s]]].
+  destruct tp as [bcis].
+  assert (H_fetch := there_is_at_most_one_specification_of_run_aux fetch_decode_execute_loop bcis).
+  destruct H_fetch as [[ds H_ds] | [s H_s]].
+  - destruct ds as [ | n ds'].
+    * rewrite -> (H_run1_nil bcis H_ds).
+      rewrite -> (H_run2_nil bcis H_ds).
+      reflexivity.
+    * destruct ds' as [ | n' ds''].
+      ** rewrite -> (H_run1_n_nil bcis n H_ds).
+         rewrite -> (H_run2_n_nil bcis n H_ds).
+         reflexivity.
+      ** rewrite -> (H_run1_n_n'_nil bcis n n' ds'' H_ds).
+         rewrite -> (H_run2_n_n'_nil bcis n n' ds'' H_ds).
+         reflexivity.
+  - rewrite -> (H_run1_s bcis s H_s).
+    rewrite -> (H_run2_s bcis s H_s).
+    reflexivity.
+Qed.
+
+
+Theorem run_satisfies_the_specification_of_run :
+  specification_of_run run.
+Proof.
+  unfold specification_of_run.
+  intros fetch_decode_execute_loop' H_specification_of_fetch.
+  split.
+  - intros bcis H_fetch_decode_execute_loop_nil.
+    unfold run.
+    Check (there_is_at_most_one_fetch_decode_execute_loop).
+    Check (there_is_at_most_one_fetch_decode_execute_loop
+             fetch_decode_execute_loop'
+             fetch_decode_execute_loop
+             H_specification_of_fetch
+             fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop
+             bcis
+             nil).
+    rewrite -> (there_is_at_most_one_fetch_decode_execute_loop
+             fetch_decode_execute_loop'
+             fetch_decode_execute_loop
+             H_specification_of_fetch
+             fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop
+             bcis
+             nil) in H_fetch_decode_execute_loop_nil.
+    rewrite -> H_fetch_decode_execute_loop_nil.
+    reflexivity.
+  - split.
+    * intros bcis n H_fetch_decode_execute_loop'.
+      unfold run.
+      rewrite -> (there_is_at_most_one_fetch_decode_execute_loop
+                    fetch_decode_execute_loop'
+                    fetch_decode_execute_loop
+                    H_specification_of_fetch
+                    fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop
+                    bcis
+                    nil) in H_fetch_decode_execute_loop'.
+      rewrite -> H_fetch_decode_execute_loop'.
+      reflexivity.
+    * split.
+      ** intros bcis n n' ds'' H_fetch_decode_execute_loop'.
+         unfold run.
+         rewrite -> (there_is_at_most_one_fetch_decode_execute_loop
+                    fetch_decode_execute_loop'
+                    fetch_decode_execute_loop
+                    H_specification_of_fetch
+                    fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop
+                    bcis
+                    nil) in H_fetch_decode_execute_loop'.
+         rewrite -> H_fetch_decode_execute_loop'.
+         reflexivity.
+      ** intros bcis s H_fetch_decode_execute_loop'. 
+         unfold run.
+         rewrite -> (there_is_at_most_one_fetch_decode_execute_loop
+                       fetch_decode_execute_loop'
+                       fetch_decode_execute_loop
+                       H_specification_of_fetch
+                       fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop
+                       bcis
+                       nil) in H_fetch_decode_execute_loop'.
+         rewrite -> H_fetch_decode_execute_loop'.
+         reflexivity.
+Qed.
+        
+   
 
 (* ********** *)
 
@@ -791,7 +964,87 @@ Definition specification_of_compile_aux (compile_aux : arithmetic_expression -> 
    a. time permitting, prove that the definition above specifies at most one function;
    b. implement this function using list concatenation, i.e., ++; and
    c. verify that your function satisfies the specification.
-*)
+ *)
+
+Proposition there_is_at_most_one_compile_aux :
+  forall compile_aux1 compile_aux2 :  arithmetic_expression -> list byte_code_instruction,
+    specification_of_compile_aux compile_aux1 ->
+    specification_of_compile_aux compile_aux2 ->
+    forall (ae : arithmetic_expression),
+      compile_aux1 ae = compile_aux2 ae.
+Proof.
+  intros compile_aux1 compile_aux2 H_compile_aux1 H_compile_aux2 ae.
+  destruct H_compile_aux1 as [H_compile_aux1_Literal [H_compile_aux1_Plus H_compile_aux1_Minus]]. 
+  destruct H_compile_aux2 as [H_compile_aux2_Literal [H_compile_aux2_Plus H_compile_aux2_Minus]]. 
+  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2].
+  - rewrite -> H_compile_aux1_Literal.
+    rewrite -> H_compile_aux2_Literal.
+    reflexivity.
+  - rewrite -> H_compile_aux1_Plus.
+    rewrite -> H_compile_aux2_Plus.
+    rewrite -> IHae1.
+    rewrite -> IHae2.
+    reflexivity.
+  - rewrite -> H_compile_aux1_Minus.
+    rewrite -> H_compile_aux2_Minus.
+    rewrite -> IHae1.
+    rewrite -> IHae2.
+    reflexivity.
+Qed.
+
+
+Fixpoint compile_aux (ae : arithmetic_expression) : list byte_code_instruction :=
+  match ae with
+  | Literal n =>
+    PUSH n :: nil
+  | Plus ae1 ae2 =>
+    (compile_aux ae1) ++ (compile_aux ae2) ++ (ADD :: nil)
+  | Minus ae1 ae2 =>
+    (compile_aux ae1) ++ (compile_aux ae2) ++ (SUB :: nil)
+  end.
+
+Lemma fold_unfold_compile_aux_Literal :
+  forall n : nat,
+    compile_aux (Literal n) =
+    PUSH n :: nil.
+Proof.
+  fold_unfold_tactic compile_aux.
+Qed.
+
+Lemma fold_unfold_compile_aux_Add :
+  forall (ae1 ae2 : arithmetic_expression),
+    compile_aux (Plus ae1 ae2) =
+    (compile_aux ae1) ++ (compile_aux ae2) ++ (ADD :: nil).
+Proof.
+  fold_unfold_tactic compile_aux.                      
+Qed.
+
+Lemma fold_unfold_compile_aux_Minus :
+  forall (ae1 ae2 : arithmetic_expression),
+    compile_aux (Minus ae1 ae2) =
+    (compile_aux ae1) ++ (compile_aux ae2) ++ (SUB :: nil).
+Proof.
+  fold_unfold_tactic compile_aux.                      
+Qed.
+
+
+Theorem compile_aux_satisfies_the_specification_of_compile_aux :
+  specification_of_compile_aux compile_aux.
+Proof.
+  unfold specification_of_compile_aux.
+  split.
+  - intro n.
+    exact (fold_unfold_compile_aux_Literal n).
+  - split.
+    * intros ae1 ae2.
+      exact (fold_unfold_compile_aux_Add ae1 ae2).
+    * intros ae1 ae2.
+      exact (fold_unfold_compile_aux_Minus ae1 ae2).
+Qed.
+
+   
+    
+(* ********** *)
 
 Definition specification_of_compile (compile : source_program -> target_program) :=
   forall compile_aux : arithmetic_expression -> list byte_code_instruction,
@@ -804,6 +1057,56 @@ Definition specification_of_compile (compile : source_program -> target_program)
    b. implement this function; and
    c. verify that your function satisfies the specification.
 *)
+
+
+Proposition there_is_at_most_one_compile :
+  forall compile1 compile2 : source_program -> target_program,
+    specification_of_compile compile1 ->
+    specification_of_compile compile2 ->
+    forall ae : arithmetic_expression,
+      compile1 (Source_program ae) = compile2 (Source_program ae).
+Proof.
+  intros compile1 compile2 H_compile1 H_compile2 ae.
+  Check (H_compile1 compile_aux compile_aux_satisfies_the_specification_of_compile_aux ae).
+  Check (H_compile2 compile_aux compile_aux_satisfies_the_specification_of_compile_aux ae).
+  rewrite -> (H_compile1 compile_aux compile_aux_satisfies_the_specification_of_compile_aux ae).
+  rewrite -> (H_compile2 compile_aux compile_aux_satisfies_the_specification_of_compile_aux ae).
+  reflexivity.
+Qed.
+
+Definition compile (sp : source_program) : target_program :=
+  match sp with
+  | Source_program ae =>
+    Target_program (compile_aux ae)
+  end.
+
+
+Theorem compile_satisfies_the_specification_of_compile :
+  specification_of_compile compile.
+Proof.
+  unfold specification_of_compile.
+  intros compile_aux' H_compile_aux ae.
+  unfold compile.
+  Check (there_is_at_most_one_compile_aux).
+  Check (there_is_at_most_one_compile_aux
+           compile_aux
+           compile_aux'
+           compile_aux_satisfies_the_specification_of_compile_aux
+           H_compile_aux
+           ae).
+  rewrite -> (there_is_at_most_one_compile_aux
+           compile_aux
+           compile_aux'
+           compile_aux_satisfies_the_specification_of_compile_aux
+           H_compile_aux
+           ae).
+  reflexivity.
+Qed.
+
+  
+
+(* ********** *)
+
 
 (* Task 8:
    implement an alternative compiler
