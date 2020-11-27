@@ -372,7 +372,15 @@ Proposition there_is_at_most_one_interpret :
     forall sp : source_program,
       interpret1 sp = interpret2 sp.
 Proof.
-Abort.
+  intros interpret1 interpret2 H_specification_interpret1 H_specification_interpret2 sp.  
+  destruct sp as [ae].
+  Check (H_specification_interpret1 evaluate evaluate_satisfies_the_specification_of_evaluate ae).
+  assert (H_interpret1 := (H_specification_interpret1 evaluate evaluate_satisfies_the_specification_of_evaluate ae)).
+  assert (H_interpret2 := (H_specification_interpret2 evaluate evaluate_satisfies_the_specification_of_evaluate ae)).
+  rewrite -> H_interpret1.
+  rewrite -> H_interpret2.
+  reflexivity.
+Qed.
 
 
 Definition interpret (sp : source_program) : expressible_value :=
@@ -609,9 +617,7 @@ Proposition there_is_at_most_one_fetch_decode_execute_loop :
            (ds : data_stack),
       fetch_decode_execute_loop1 bcis' ds = fetch_decode_execute_loop2 bcis' ds.
 Proof.
-  intros fetch_decode_execute_loop1 fetch_decode_execute_loop2.
-  intros H_loop1 H_loop2.
-  intros bcis' ds.
+  intros fetch_decode_execute_loop1 fetch_decode_execute_loop2 H_loop1 H_loop2 bcis' ds.
   induction bcis' as [ | bci bcis'' IHbcis''].
   - unfold specification_of_fetch_decode_execute_loop.
     (* PROBLEM HERE *)
@@ -754,7 +760,7 @@ Proof.
       reflexivity.
   * intros s H_fetch_decode_execute_loop.
     rewrite -> fold_unfold_fetch_decode_execute_loop_nil in H_fetch_decode_execute_loop.
-    discriminate.
+    discriminate H_fetch_decode_execute_loop.
   * intros bcis2 ds.
     split.
     ** intros ds' H_fetch_decode_execute_loop.
@@ -1023,7 +1029,7 @@ Lemma fold_unfold_compile_aux_Minus :
   forall (ae1 ae2 : arithmetic_expression),
     compile_aux (Minus ae1 ae2) =
     (compile_aux ae1) ++ (compile_aux ae2) ++ (SUB :: nil).
-Proof.
+ Proof.
   fold_unfold_tactic compile_aux.                      
 Qed.
 
@@ -1095,11 +1101,11 @@ Proof.
            H_compile_aux
            ae).
   rewrite -> (there_is_at_most_one_compile_aux
-           compile_aux
-           compile_aux'
-           compile_aux_satisfies_the_specification_of_compile_aux
-           H_compile_aux
-           ae).
+                compile_aux
+                compile_aux'
+                compile_aux_satisfies_the_specification_of_compile_aux
+                H_compile_aux
+                ae).
   reflexivity.
 Qed.
 
@@ -1118,6 +1124,158 @@ Qed.
    Are your compiler and your alternative compiler equivalent?
    How can you tell?
 *)
+
+
+Fixpoint compile_aux_acc (ae : arithmetic_expression) (a : list byte_code_instruction) : list byte_code_instruction :=
+  match ae with
+  | Literal n =>
+    PUSH n :: a
+  | Plus ae1 ae2 =>
+    compile_aux_acc ae1 (compile_aux_acc ae2 (ADD :: a))
+  | Minus ae1 ae2 =>
+    compile_aux_acc ae1 (compile_aux_acc ae2 (SUB :: a))
+  end.
+
+
+Definition compile_acc (sp : source_program) : target_program :=
+  match sp with
+  | Source_program ae =>
+    Target_program (compile_aux_acc ae nil)
+  end.
+
+
+Lemma fold_unfold_compile_aux_acc_Literal :
+  forall (n : nat)
+         (a : list byte_code_instruction),
+    compile_aux_acc (Literal n) a =
+    PUSH n :: a.
+Proof.
+  fold_unfold_tactic compile_aux_acc.
+Qed.
+
+
+Lemma fold_unfold_compile_aux_acc_Plus :
+  forall (ae1 ae2 : arithmetic_expression)
+         (a : list byte_code_instruction),
+    compile_aux_acc (Plus ae1 ae2) a =
+    compile_aux_acc ae1 (compile_aux_acc ae2 (ADD :: a)).
+Proof.
+  fold_unfold_tactic compile_aux_acc.
+Qed.
+
+
+Lemma fold_unfold_compile_aux_acc_Minus :
+  forall (ae1 ae2 : arithmetic_expression)
+         (a : list byte_code_instruction),
+    compile_aux_acc (Minus ae1 ae2) a =
+    compile_aux_acc ae1 (compile_aux_acc ae2 (SUB :: a)).
+Proof.
+  fold_unfold_tactic compile_aux_acc.
+Qed.
+
+
+
+Lemma compile_aux_acc_lemma :
+  forall (ae : arithmetic_expression)
+         (a : list byte_code_instruction),
+    compile_aux_acc ae a =
+    compile_aux ae ++ a.
+Proof.
+  induction ae as [ n | ae1 IHae1 | ae2 IHae2].
+  - intro a.
+    rewrite -> fold_unfold_compile_aux_acc_Literal.
+    rewrite -> fold_unfold_compile_aux_Literal.
+    rewrite -> fold_unfold_append_cons.
+    rewrite -> fold_unfold_append_nil.
+    reflexivity.
+  - intro a.
+    rewrite -> fold_unfold_compile_aux_acc_Plus.
+    rewrite -> fold_unfold_compile_aux_Add.
+    rewrite -> IHae2.
+    rewrite -> IHae1.
+    Check (List.app_assoc).
+    rewrite <- (List.app_assoc (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) a).
+    Check (List.app_assoc (compile_aux ae2) (ADD :: nil) a). 
+    rewrite <- (List.app_assoc (compile_aux ae2) (ADD :: nil) a). 
+    rewrite -> fold_unfold_append_cons.
+    reflexivity.
+  - intro a.
+    rewrite -> fold_unfold_compile_aux_acc_Minus.
+    rewrite -> fold_unfold_compile_aux_Minus.
+    rewrite -> IHae2.
+    rewrite -> IHae1.
+    rewrite <- (List.app_assoc (compile_aux ae2) (compile_aux ae1 ++ SUB :: nil) a).
+    rewrite <- (List.app_assoc (compile_aux ae1) (SUB :: nil) a). 
+    rewrite -> fold_unfold_append_cons.
+    reflexivity.
+Qed.    
+
+
+    
+
+Proposition compile_acc_satisfies_the_specification_of_compile :
+  specification_of_compile compile_acc.
+Proof.
+  unfold specification_of_compile, compile_acc.
+  intros compile_aux' H_compile_aux ae.
+  assert (H_compile_aux' := H_compile_aux).
+  destruct H_compile_aux as [H_compile_aux_Literal [H_compile_aux_Plus H_compile_aux_Minus]].
+  destruct ae.
+  - rewrite -> fold_unfold_compile_aux_acc_Literal.
+    rewrite -> H_compile_aux_Literal.
+    reflexivity.
+  - rewrite -> fold_unfold_compile_aux_acc_Plus.
+    rewrite -> H_compile_aux_Plus.
+    assert (H_compile_aux_acc_lemma:= compile_aux_acc_lemma).
+    Check (there_is_at_most_one_compile_aux).
+    Check (there_is_at_most_one_compile_aux
+             compile_aux
+             compile_aux'
+             compile_aux_satisfies_the_specification_of_compile_aux
+             H_compile_aux'
+             ae1).
+    rewrite -> (there_is_at_most_one_compile_aux
+                  compile_aux'
+                  compile_aux
+                  H_compile_aux'
+                  compile_aux_satisfies_the_specification_of_compile_aux
+                  ae1).
+    rewrite -> (there_is_at_most_one_compile_aux
+                  compile_aux'
+                  compile_aux
+                  H_compile_aux'
+                  compile_aux_satisfies_the_specification_of_compile_aux
+                  ae2).
+    rewrite -> H_compile_aux_acc_lemma.
+    rewrite -> H_compile_aux_acc_lemma.
+    reflexivity.
+  - rewrite -> fold_unfold_compile_aux_acc_Minus.
+    rewrite -> H_compile_aux_Minus.
+    assert (H_compile_aux_acc_lemma:= compile_aux_acc_lemma).
+    Check (there_is_at_most_one_compile_aux).
+    Check (there_is_at_most_one_compile_aux
+             compile_aux
+             compile_aux'
+             compile_aux_satisfies_the_specification_of_compile_aux
+             H_compile_aux'
+             ae1).
+    rewrite -> (there_is_at_most_one_compile_aux
+                  compile_aux'
+                  compile_aux
+                  H_compile_aux'
+                  compile_aux_satisfies_the_specification_of_compile_aux
+                  ae1).
+    rewrite -> (there_is_at_most_one_compile_aux
+                  compile_aux'
+                  compile_aux
+                  H_compile_aux'
+                  compile_aux_satisfies_the_specification_of_compile_aux
+                  ae2).
+    rewrite -> H_compile_aux_acc_lemma.
+    rewrite -> H_compile_aux_acc_lemma.
+    reflexivity.
+Qed.
+    
 
 (* ********** *)
 
