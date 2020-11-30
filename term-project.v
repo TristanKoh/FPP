@@ -609,20 +609,59 @@ Definition specification_of_fetch_decode_execute_loop (fetch_decode_execute_loop
 *)
 
 
+Lemma there_is_at_most_one_fetch_decode_execute_loop_aux :
+  forall (decode_execute : byte_code_instruction -> data_stack -> result_of_decoding_and_execution)
+         (bci : byte_code_instruction)
+         (ds : data_stack),
+    (exists ds' : data_stack,
+        decode_execute bci ds = OK ds')
+    \/
+    (exists s : string,
+        decode_execute bci ds = KO s).
+Proof.
+  intros de bci ds.
+  destruct (de bci ds) as [ds' | s].
+  - left.
+    exists ds'.
+    reflexivity.
+  - right.
+    exists s.
+    reflexivity.
+Qed.
+  
+  
+
 Proposition there_is_at_most_one_fetch_decode_execute_loop :
   forall fetch_decode_execute_loop1 fetch_decode_execute_loop2 : list byte_code_instruction -> data_stack -> result_of_decoding_and_execution,
     specification_of_fetch_decode_execute_loop fetch_decode_execute_loop1 ->
     specification_of_fetch_decode_execute_loop fetch_decode_execute_loop2 ->
-    forall (bcis' : list byte_code_instruction)
+    forall (bcis : list byte_code_instruction)
            (ds : data_stack),
-      fetch_decode_execute_loop1 bcis' ds = fetch_decode_execute_loop2 bcis' ds.
+      fetch_decode_execute_loop1 bcis ds = fetch_decode_execute_loop2 bcis ds.
 Proof.
-  intros fetch_decode_execute_loop1 fetch_decode_execute_loop2 H_loop1 H_loop2 bcis' ds.
-  induction bcis' as [ | bci bcis'' IHbcis''].
-  - unfold specification_of_fetch_decode_execute_loop.
-    (* PROBLEM HERE *)
-  
-Admitted.
+  intros loop1 loop2 S_loop1 S_loop2 bcis.
+  induction bcis as [ | bci bcis' IHbcis']; intro ds.
+  - unfold specification_of_fetch_decode_execute_loop in S_loop1.
+    destruct (S_loop1 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [fold_unfold_loop1_nil _].
+    destruct (S_loop2 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [fold_unfold_loop2_nil _].
+    rewrite -> fold_unfold_loop1_nil.
+    rewrite -> fold_unfold_loop2_nil.
+    reflexivity.
+  - destruct (S_loop1 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [_ [fold_unfold_loop1_cons_OK _]].
+    destruct (S_loop2 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [_ [fold_unfold_loop2_cons_OK _]].
+    Check (there_is_at_most_one_fetch_decode_execute_loop_aux).
+    assert (H_lemma := there_is_at_most_one_fetch_decode_execute_loop_aux decode_execute bci ds).   
+    destruct H_lemma as [[ds' H_ds] | [s H_s]].
+    * rewrite -> (fold_unfold_loop1_cons_OK bci bcis' ds ds' H_ds).
+      rewrite -> (fold_unfold_loop2_cons_OK bci bcis' ds ds' H_ds).
+      rewrite -> (IHbcis' ds').
+      reflexivity.
+    * destruct (S_loop1 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [_ [_ fold_unfold_loop1_cons_KO]].
+      destruct (S_loop2 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [_ [_ fold_unfold_loop2_cons_KO]].
+      rewrite -> (fold_unfold_loop1_cons_KO bci bcis' ds s H_s).
+      rewrite -> (fold_unfold_loop2_cons_KO bci bcis' ds s H_s).
+      reflexivity.
+Qed.
 
 
 Fixpoint fetch_decode_execute_loop (bcis' : list byte_code_instruction) (ds : data_stack) : result_of_decoding_and_execution :=
@@ -833,7 +872,7 @@ Definition run (tp : target_program) : expressible_value :=
 
 
 
-Lemma there_is_at_most_one_specification_of_run_aux :
+Lemma there_is_at_most_one_run_aux :
   forall (fetch_decode_execute_loop : list byte_code_instruction -> data_stack -> result_of_decoding_and_execution)
          (bcis : list byte_code_instruction),
     (exists ds : data_stack,
@@ -853,7 +892,7 @@ Proof.
 Qed.
 
 
-Proposition there_is_at_most_one_specification_of_run :
+Proposition there_is_at_most_one_run :
   forall (decode_execute : byte_code_instruction -> data_stack -> result_of_decoding_and_execution),
     specification_of_decode_execute decode_execute ->
     forall (fetch_decode_execute_loop : list byte_code_instruction -> data_stack -> result_of_decoding_and_execution),
@@ -871,7 +910,7 @@ Proof.
   destruct (H_run2 fetch_decode_execute_loop H_fetch_decode_execute_loop) as
       [H_run2_nil [H_run2_n_nil [H_run2_n_n'_nil H_run2_s]]].
   destruct tp as [bcis].
-  assert (H_fetch := there_is_at_most_one_specification_of_run_aux fetch_decode_execute_loop bcis).
+  assert (H_fetch := there_is_at_most_one_run_aux fetch_decode_execute_loop bcis).
   destruct H_fetch as [[ds H_ds] | [s H_s]].
   - destruct ds as [ | n ds'].
     * rewrite -> (H_run1_nil bcis H_ds).
