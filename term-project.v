@@ -375,10 +375,8 @@ Proof.
   intros interpret1 interpret2 H_specification_interpret1 H_specification_interpret2 sp.  
   destruct sp as [ae].
   Check (H_specification_interpret1 evaluate evaluate_satisfies_the_specification_of_evaluate ae).
-  assert (H_interpret1 := (H_specification_interpret1 evaluate evaluate_satisfies_the_specification_of_evaluate ae)).
-  assert (H_interpret2 := (H_specification_interpret2 evaluate evaluate_satisfies_the_specification_of_evaluate ae)).
-  rewrite -> H_interpret1.
-  rewrite -> H_interpret2.
+  rewrite -> (H_specification_interpret1 evaluate evaluate_satisfies_the_specification_of_evaluate ae).
+  rewrite -> (H_specification_interpret2 evaluate evaluate_satisfies_the_specification_of_evaluate ae).
   reflexivity.
 Qed.
 
