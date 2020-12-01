@@ -1390,8 +1390,8 @@ Definition verify (p : target_program) : bool :=
 
 (*
 Theorem the_compiler_emits_well_behaved_code :
-  forall ae : arithmetic_expression,
-    verify (compile ae) = true.
+  forall sp : source_program,
+    verify (compile sp) = true.
 Proof.
 Abort.
 *)
