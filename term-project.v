@@ -853,23 +853,6 @@ Definition specification_of_run (run : target_program -> expressible_value) :=
    c. verify that your function satisfies the specification.
  *)
 
-Definition run (tp : target_program) : expressible_value :=
-  match tp with
-  | Target_program bcis =>
-    match fetch_decode_execute_loop bcis nil with
-    | OK nil =>
-      Expressible_msg "no result on the data stack"
-    | OK (n :: nil) =>
-      Expressible_nat n
-    | OK (n :: n' :: ds') =>
-      Expressible_msg "too many results on the data stack"
-    | KO s =>
-      Expressible_msg s
-    end
-  end.
-
-
-
 Lemma there_is_at_most_one_run_aux :
   forall (fetch_decode_execute_loop : list byte_code_instruction -> data_stack -> result_of_decoding_and_execution)
          (bcis : list byte_code_instruction),
@@ -926,6 +909,20 @@ Proof.
     reflexivity.
 Qed.
 
+Definition run (tp : target_program) : expressible_value :=
+  match tp with
+  | Target_program bcis =>
+    match fetch_decode_execute_loop bcis nil with
+    | OK nil =>
+      Expressible_msg "no result on the data stack"
+    | OK (n :: nil) =>
+      Expressible_nat n
+    | OK (n :: n' :: ds') =>
+      Expressible_msg "too many results on the data stack"
+    | KO s =>
+      Expressible_msg s
+    end
+  end.
 
 Theorem run_satisfies_the_specification_of_run :
   specification_of_run run.
@@ -1313,6 +1310,26 @@ Proof.
     reflexivity.
 Qed.
     
+
+Proposition compile_and_compile_acc_are_equivalent :
+  forall sp : source_program,
+    compile sp = compile_acc sp.
+Proof.
+  intros [ae].
+  Check (there_is_at_most_one_compile
+           compile
+           compile_acc
+           compile_satisfies_the_specification_of_compile
+           compile_acc_satisfies_the_specification_of_compile
+           ae).
+  exact (there_is_at_most_one_compile
+           compile
+           compile_acc
+           compile_satisfies_the_specification_of_compile
+           compile_acc_satisfies_the_specification_of_compile
+           ae).
+Qed.
+
 
 (* ********** *)
 
