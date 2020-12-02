@@ -1340,37 +1340,196 @@ Qed.
 
             
 Lemma eureka_lemma_the_commutative_diagram :
-   forall(ae : arithmetic_expression)
-         (ds : data_stack),
-     (forall (s : string),
-         evaluate ae = Expressible_msg s ->
-         fetch_decode_execute_loop (compile_aux ae) ds = KO s)
-     /\
+   forall (ae : arithmetic_expression)
+          (ds : data_stack),
      (forall (n : nat),
          evaluate ae = Expressible_nat n ->
-         fetch_decode_execute_loop (compile_aux ae) ds = OK (n :: ds)).
+         fetch_decode_execute_loop (compile_aux ae) ds = OK (n :: ds))
+     /\
+     (forall (s : string),
+         evaluate ae = Expressible_msg s ->
+         fetch_decode_execute_loop (compile_aux ae) ds = KO s).
 Proof.
   intros ae.
   induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2]; intro ds.
-  split.
-  - intros s H_s.
-    rewrite -> fold_unfold_evaluate_Literal in H_s.
-    discriminate H_s.
-  - intros n' H_nat.
-    rewrite -> fold_unfold_evaluate_Literal in H_nat.
-    rewrite -> fold_unfold_compile_aux_Literal.
-    Check (fold_unfold_fetch_decode_execute_loop_cons).
-    rewrite -> (fold_unfold_fetch_decode_execute_loop_cons (PUSH n) nil ds).
-    unfold decode_execute.
-    rewrite -> (fold_unfold_fetch_decode_execute_loop_nil (n :: ds)).
-    injection H_nat as H_nat.
-    rewrite -> H_nat.
-    reflexivity.
   - split.
+    + intros n' H_nat.
+      rewrite -> fold_unfold_evaluate_Literal in H_nat.
+      injection H_nat as H_nat.
+      rewrite <- H_nat.
+      rewrite -> fold_unfold_compile_aux_Literal.
+      rewrite -> (fold_unfold_fetch_decode_execute_loop_cons (PUSH n) nil ds).
+      unfold decode_execute.
+      rewrite -> (fold_unfold_fetch_decode_execute_loop_nil (n :: ds)).
+      reflexivity.
     + intros s H_s.
-    (* PROBLEM HERE *)
-Admitted.
+      rewrite -> fold_unfold_evaluate_Literal in H_s.
+      discriminate H_s.
+  - split.
+    + intros n H_nat.
+      rewrite -> (fold_unfold_evaluate_Plus ae1 ae2) in H_nat.
+      rewrite -> (fold_unfold_compile_aux_Plus ae1 ae2).
+      case (evaluate ae1) as [n1 | s1] eqn:H_eval_ae1.
+      * case (evaluate ae2) as [n2 | s2] eqn:H_eval_ae2.
+        -- assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) ds).
+           destruct H_concat1 as [H_concat1 _].
+           assert (IHae1 := IHae1 ds).
+           destruct IHae1 as [H_fdel1 _].
+           assert (H_n1 : Expressible_nat n1 = Expressible_nat n1).
+           reflexivity.
+           assert (H_fdel1 := H_fdel1 n1 H_n1).
+           assert (H_concat1 := H_concat1 (n1 :: ds) H_fdel1).
+           rewrite <- H_concat1.
+           
+           assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (ADD :: nil) (n1 :: ds)).
+           destruct H_concat2 as [H_concat2 _].
+           assert (IHae2 := IHae2 (n1 :: ds)).
+           destruct IHae2 as [H_fdel2 _].
+           assert (H_n2 : Expressible_nat n2 = Expressible_nat n2).
+           reflexivity.
+           assert (H_fdel2 := H_fdel2 n2 H_n2).
+           assert (H_concat2 := H_concat2 (n2 :: n1 :: ds) H_fdel2).
+           rewrite <- H_concat2.
+           
+           rewrite -> (fold_unfold_fetch_decode_execute_loop_cons ADD nil (n2 :: n1 :: ds)).
+           unfold decode_execute.
+           rewrite -> (fold_unfold_fetch_decode_execute_loop_nil (n1 + n2 :: ds)).
+           
+           injection H_nat as H_nat.
+           rewrite -> H_nat.
+           reflexivity.
+        -- discriminate H_nat.
+      * discriminate H_nat.
+    + intros s H_s.
+      rewrite -> (fold_unfold_evaluate_Plus ae1 ae2) in H_s.
+      rewrite -> (fold_unfold_compile_aux_Plus ae1 ae2).
+      case (evaluate ae1) as [n1 | s1] eqn:H_eval_ae1.
+      * case (evaluate ae2) as [n2 | s2] eqn:H_eval_ae2.
+        -- discriminate H_s.
+        -- assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) ds).
+           destruct H_concat1 as [H_concat1 _].
+           assert (IHae1 := IHae1 ds).
+           destruct IHae1 as [H_fdel1 _].
+           assert (H_n1 : Expressible_nat n1 = Expressible_nat n1).
+           reflexivity.
+           assert (H_fdel1 := H_fdel1 n1 H_n1).
+           assert (H_concat1 := H_concat1 (n1 :: ds) H_fdel1).
+           rewrite <- H_concat1.
+           
+           assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (ADD :: nil) (n1 :: ds)).
+           destruct H_concat2 as [_ H_concat2].
+           assert (IHae2 := IHae2 (n1 :: ds)).
+           destruct IHae2 as [_ H_fdel2].
+           assert (H_fdel2 := H_fdel2 s H_s).
+           assert (H_concat2 := H_concat2 s H_fdel2).
+           rewrite -> H_concat2.
+           reflexivity.
+      * assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) ds).
+        destruct H_concat1 as [_ H_concat1].
+        assert (IHae1 := IHae1 ds).
+        destruct IHae1 as [_ H_fdel1].
+        assert (H_fdel1 := H_fdel1 s H_s).
+        assert (H_concat1 := H_concat1 s H_fdel1).
+        rewrite <- H_concat1.
+        reflexivity.
+- split.
+    + intros n H_nat.
+      rewrite -> (fold_unfold_evaluate_Minus ae1 ae2) in H_nat.
+      rewrite -> (fold_unfold_compile_aux_Minus ae1 ae2).
+      case (evaluate ae1) as [n1 | s1] eqn:H_eval_ae1.
+      * case (evaluate ae2) as [n2 | s2] eqn:H_eval_ae2.
+        -- case (n1 <? n2) eqn:H_n1_n2.
+           ++ discriminate H_nat.
+           ++ assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) ds).
+              destruct H_concat1 as [H_concat1 _].
+              assert (IHae1 := IHae1 ds).
+              destruct IHae1 as [H_fdel1 _].
+              assert (H_n1 : Expressible_nat n1 = Expressible_nat n1).
+              reflexivity.
+              assert (H_fdel1 := H_fdel1 n1 H_n1).
+              assert (H_concat1 := H_concat1 (n1 :: ds) H_fdel1).
+              rewrite <- H_concat1.
+              
+              assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (SUB :: nil) (n1 :: ds)).
+              destruct H_concat2 as [H_concat2 _].
+              assert (IHae2 := IHae2 (n1 :: ds)).
+              destruct IHae2 as [H_fdel2 _].
+              assert (H_n2 : Expressible_nat n2 = Expressible_nat n2).
+              reflexivity.
+              assert (H_fdel2 := H_fdel2 n2 H_n2).
+              assert (H_concat2 := H_concat2 (n2 :: n1 :: ds) H_fdel2).
+              rewrite <- H_concat2.
+              
+              rewrite -> (fold_unfold_fetch_decode_execute_loop_cons SUB nil (n2 :: n1 :: ds)).
+              unfold decode_execute.
+              rewrite -> H_n1_n2.
+              rewrite -> (fold_unfold_fetch_decode_execute_loop_nil (n1 - n2 :: ds)).
+              injection H_nat as H_nat.
+              rewrite -> H_nat.
+              reflexivity.
+        -- discriminate H_nat.
+      * discriminate H_nat.
+    + intros s H_s.
+      rewrite -> (fold_unfold_evaluate_Minus ae1 ae2) in H_s.
+      rewrite -> (fold_unfold_compile_aux_Minus ae1 ae2).
+      case (evaluate ae1) as [n1 | s1] eqn:H_eval_ae1.
+      * case (evaluate ae2) as [n2 | s2] eqn:H_eval_ae2.
+        -- case (n1 <? n2) eqn:H_n1_n2.
+           ++ assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) ds).
+              destruct H_concat1 as [H_concat1 _].
+              assert (IHae1 := IHae1 ds).
+              destruct IHae1 as [H_fdel1 _].
+              assert (H_n1 : Expressible_nat n1 = Expressible_nat n1).
+              reflexivity.
+              assert (H_fdel1 := H_fdel1 n1 H_n1).
+              assert (H_concat1 := H_concat1 (n1 :: ds) H_fdel1).
+              rewrite <- H_concat1.
+           
+              assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (SUB :: nil) (n1 :: ds)).
+              destruct H_concat2 as [H_concat2 _].
+              assert (IHae2 := IHae2 (n1 :: ds)).
+              destruct IHae2 as [H_fdel2 _].
+              assert (H_n2 : Expressible_nat n2 = Expressible_nat n2).
+              reflexivity.
+              assert (H_fdel2 := H_fdel2 n2 H_n2).
+              assert (H_concat2 := H_concat2 (n2 :: n1 :: ds) H_fdel2).
+              rewrite <- H_concat2.
+              
+              rewrite -> (fold_unfold_fetch_decode_execute_loop_cons SUB nil (n2 :: n1 :: ds)).
+              unfold decode_execute.
+              rewrite -> H_n1_n2.
 
+              injection H_s as H_s.
+              rewrite <- H_s.
+              reflexivity.
+           ++ discriminate H_s.
+        -- assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) ds).
+           destruct H_concat1 as [H_concat1 _].
+           assert (IHae1 := IHae1 ds).
+           destruct IHae1 as [H_fdel1 _].
+           assert (H_n1 : Expressible_nat n1 = Expressible_nat n1).
+           reflexivity.
+           assert (H_fdel1 := H_fdel1 n1 H_n1).
+           assert (H_concat1 := H_concat1 (n1 :: ds) H_fdel1).
+           rewrite <- H_concat1.
+           
+           assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (SUB :: nil) (n1 :: ds)).
+           destruct H_concat2 as [_ H_concat2].
+           assert (IHae2 := IHae2 (n1 :: ds)).
+           destruct IHae2 as [_ H_fdel2].
+           assert (H_fdel2 := H_fdel2 s H_s).
+           assert (H_concat2 := H_concat2 s H_fdel2).
+           rewrite -> H_concat2.
+           reflexivity.
+      * assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) ds).
+        destruct H_concat1 as [_ H_concat1].
+        assert (IHae1 := IHae1 ds).
+        destruct IHae1 as [_ H_fdel1].
+        assert (H_fdel1 := H_fdel1 s H_s).
+        assert (H_concat1 := H_concat1 s H_fdel1).
+        rewrite <- H_concat1.
+        reflexivity.
+Qed.
 
 Theorem the_commutative_diagram :
   forall (sp : source_program),
@@ -1394,7 +1553,7 @@ Proof.
       * assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) nil).
         destruct H_concat1 as [H_concat1 _].
         assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
-        destruct H_fdel1 as [_ H_fdel1].
+        destruct H_fdel1 as [H_fdel1 _].
         assert (H_fdel1 := H_fdel1 n1 H_eval_ae1).
         assert (H_concat1 := H_concat1 (n1 :: nil) H_fdel1).
         rewrite <- H_concat1.
@@ -1402,7 +1561,7 @@ Proof.
         assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (ADD :: nil) (n1 :: nil)).
         destruct H_concat2 as [H_concat2 _].
         assert (H_fdel2 := eureka_lemma_the_commutative_diagram ae2 (n1 :: nil)).
-        destruct H_fdel2 as [_ H_fdel2].
+        destruct H_fdel2 as [H_fdel2 _].
         assert (H_fdel2 := H_fdel2 n2 H_eval_ae2).
         assert (H_concat2 := H_concat2 (n2 :: n1 :: nil) H_fdel2).
         rewrite <- H_concat2.
@@ -1415,7 +1574,7 @@ Proof.
       * assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) nil).
         destruct H_concat1 as [H_concat1 _].
         assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
-        destruct H_fdel1 as [_ H_fdel1].
+        destruct H_fdel1 as [H_fdel1 _].
         assert (H_fdel1 := H_fdel1 n1 H_eval_ae1).
         assert (H_concat1 := H_concat1 (n1 :: nil) H_fdel1).
         rewrite <- H_concat1.
@@ -1423,7 +1582,7 @@ Proof.
         assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (ADD :: nil) (n1 :: nil)).
         destruct H_concat2 as [_ H_concat2].
         assert (H_fdel2 := eureka_lemma_the_commutative_diagram ae2 (n1 :: nil)).
-        destruct H_fdel2 as [H_fdel2 _].
+        destruct H_fdel2 as [_ H_fdel2].
         assert (H_fdel2 := H_fdel2 s2 H_eval_ae2).
         assert (H_concat2 := H_concat2 s2 H_fdel2).
         rewrite -> H_concat2.
@@ -1431,7 +1590,7 @@ Proof.
     + assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) nil).
       destruct H_concat1 as [_ H_concat1].
       assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
-      destruct H_fdel1 as [H_fdel1 _].
+      destruct H_fdel1 as [_ H_fdel1].
       assert (H_fdel1 := H_fdel1 s1 H_eval_ae1).
       assert (H_concat1 := H_concat1 s1 H_fdel1).
       rewrite -> H_concat1.
@@ -1445,7 +1604,7 @@ Proof.
         -- assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) nil).
            destruct H_concat1 as [H_concat1 _].
            assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
-           destruct H_fdel1 as [_ H_fdel1].
+           destruct H_fdel1 as [H_fdel1 _].
            assert (H_fdel1 := H_fdel1 n1 H_eval_ae1).
            assert (H_concat1 := H_concat1 (n1 :: nil) H_fdel1).
            rewrite <- H_concat1.
@@ -1453,7 +1612,7 @@ Proof.
            assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (SUB :: nil) (n1 :: nil)).
            destruct H_concat2 as [H_concat2 _].
            assert (H_fdel2 := eureka_lemma_the_commutative_diagram ae2 (n1 :: nil)).
-           destruct H_fdel2 as [_ H_fdel2].
+           destruct H_fdel2 as [H_fdel2 _].
            assert (H_fdel2 := H_fdel2 n2 H_eval_ae2).
            assert (H_concat2 := H_concat2 (n2 :: n1 :: nil) H_fdel2).
            rewrite <- H_concat2.
@@ -1466,7 +1625,7 @@ Proof.
         -- assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) nil).
            destruct H_concat1 as [H_concat1 _].
            assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
-           destruct H_fdel1 as [_ H_fdel1].
+           destruct H_fdel1 as [H_fdel1 _].
            assert (H_fdel1 := H_fdel1 n1 H_eval_ae1).
            assert (H_concat1 := H_concat1 (n1 :: nil) H_fdel1).
            rewrite <- H_concat1.
@@ -1474,7 +1633,7 @@ Proof.
            assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (SUB :: nil) (n1 :: nil)).
            destruct H_concat2 as [H_concat2 _].
            assert (H_fdel2 := eureka_lemma_the_commutative_diagram ae2 (n1 :: nil)).
-           destruct H_fdel2 as [_ H_fdel2].
+           destruct H_fdel2 as [H_fdel2 _].
            assert (H_fdel2 := H_fdel2 n2 H_eval_ae2).
            assert (H_concat2 := H_concat2 (n2 :: n1 :: nil) H_fdel2).
            rewrite <- H_concat2.
@@ -1487,7 +1646,7 @@ Proof.
       * assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) nil).
         destruct H_concat1 as [H_concat1 _].
         assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
-        destruct H_fdel1 as [_ H_fdel1].
+        destruct H_fdel1 as [H_fdel1 _].
         assert (H_fdel1 := H_fdel1 n1 H_eval_ae1).
         assert (H_concat1 := H_concat1 (n1 :: nil) H_fdel1).
         rewrite <- H_concat1.
@@ -1495,7 +1654,7 @@ Proof.
         assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (SUB :: nil) (n1 :: nil)).
         destruct H_concat2 as [_ H_concat2].
         assert (H_fdel2 := eureka_lemma_the_commutative_diagram ae2 (n1 :: nil)).
-        destruct H_fdel2 as [H_fdel2 _].
+        destruct H_fdel2 as [_ H_fdel2].
         assert (H_fdel2 := H_fdel2 s2 H_eval_ae2).
         assert (H_concat2 := H_concat2 s2 H_fdel2).
         rewrite -> H_concat2.
@@ -1503,7 +1662,7 @@ Proof.
     + assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) nil).
       destruct H_concat1 as [_ H_concat1].
       assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
-      destruct H_fdel1 as [H_fdel1 _].
+      destruct H_fdel1 as [_ H_fdel1].
       assert (H_fdel1 := H_fdel1 s1 H_eval_ae1).
       assert (H_concat1 := H_concat1 s1 H_fdel1).
       rewrite -> H_concat1.
