@@ -792,9 +792,9 @@ Proof.
   * intros ds' H_fetch_decode_execute_loop.
     rewrite -> fold_unfold_append_nil.
     rewrite -> fold_unfold_fetch_decode_execute_loop_nil in H_fetch_decode_execute_loop.
-      injection H_fetch_decode_execute_loop as H_ds.
-      rewrite -> H_ds.
-      reflexivity.
+    injection H_fetch_decode_execute_loop as H_ds.
+    rewrite -> H_ds.
+    reflexivity.
   * intros s H_fetch_decode_execute_loop.
     rewrite -> fold_unfold_fetch_decode_execute_loop_nil in H_fetch_decode_execute_loop.
     discriminate H_fetch_decode_execute_loop.
@@ -1747,62 +1747,93 @@ Proof.
 Qed.
 
 
-Lemma the_compiler_emits_well_behaved_code_aux :
-  forall (bcis : list byte_code_instruction)
-         (bcis' : list byte_code_instruction)
+Lemma concatenation_of_two_list_bcis_with_n :
+  forall (bcis1 bcis2 : list byte_code_instruction)
          (n : nat),
-  verify_aux (bcis ++ bcis') n =
-     match verify_aux bcis n with
-     | Some n' => verify_aux bcis' n'
+  verify_aux (bcis1 ++ bcis2) n =
+     match verify_aux bcis1 n with
+     | Some n' => verify_aux bcis2 n'
      | None => None
      end.
 Proof.
-  intro bcis.
-  induction bcis as [ | bci bcis IHbcis]; intros bcis' n.
-  - rewrite -> (fold_unfold_append_nil bcis').
+  intro bcis1.
+  induction bcis1 as [ | bci bcis1 IHbcis1]; intros bcis2 n.
+  - rewrite -> (fold_unfold_append_nil bcis2).
     rewrite -> (fold_unfold_verify_aux_nil n).
     reflexivity.
-  - rewrite -> (fold_unfold_append_cons bci bcis bcis').
-    rewrite -> (fold_unfold_verify_aux_cons bci (bcis ++ bcis') n).
-    rewrite -> (fold_unfold_verify_aux_cons bci bcis n).
-    rewrite -> (IHbcis bcis' (S n)).
-    case bci.
-    + intro n''.
-      reflexivity.
-    + case n.
+  - rewrite -> (fold_unfold_append_cons bci bcis1 bcis2).
+    rewrite -> (fold_unfold_verify_aux_cons bci (bcis1 ++ bcis2) n).
+    rewrite -> (fold_unfold_verify_aux_cons bci bcis1 n).
+    rewrite -> (IHbcis1 bcis2 (S n)).
+    case bci as [ n'' | | ].
+    + reflexivity.
+    + case n as [ | n''].
       * reflexivity.
-      * intro n0.
-        case n0.
+      * case n'' as [ | n'''].
         -- reflexivity.
-        -- intro n1.
-           rewrite -> (IHbcis bcis' (S n1)).
+        -- rewrite -> (IHbcis1 bcis2 (S n''')).
            reflexivity.
-    + case n.
+    + case n as [ | n''].
       * reflexivity.
-      * intro n0.
-        case n0.
+      * case n'' as [ | n'''].
         -- reflexivity.
-        -- intro n1.
-           rewrite -> (IHbcis bcis' (S n1)).
+        -- rewrite -> (IHbcis1 bcis2 (S n''')).
            reflexivity.
 Qed.
+
+Lemma verify_aux_true_implies_Some :
+  forall (ae : arithmetic_expression)
+         (n : nat),
+    match verify_aux (compile_aux ae) 0 with
+    | Some 1 => true
+    | _ => false
+    end = true ->
+    verify_aux (compile_aux ae) n = Some (S n).
+Proof.
+Admitted.
 
 Theorem the_compiler_emits_well_behaved_code :
   forall sp : source_program,
     verify (compile sp) = true.
 Proof.
   intros [ae].
-  unfold compile.
-  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2].
+  unfold compile, verify.
+  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2]; unfold verify.
   - rewrite -> (fold_unfold_compile_aux_Literal n).
-    unfold verify.
     rewrite -> (fold_unfold_verify_aux_cons (PUSH n) nil 0).
     rewrite -> (fold_unfold_verify_aux_nil 1).
     reflexivity.
   - rewrite -> (fold_unfold_compile_aux_Plus ae1 ae2).
-    unfold verify.
-    unfold verify in IHae1, IHae2.
-Abort.
+    assert (H_concat1 := concatenation_of_two_list_bcis_with_n (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) 0).
+    assert (H_verify_aux1 := verify_aux_true_implies_Some ae1 0 IHae1).
+    assert (H_verify_aux2 := verify_aux_true_implies_Some ae2 1 IHae2).
+    rewrite -> H_verify_aux1 in H_concat1.
+    rewrite -> H_concat1.
+    
+    assert (H_concat2 := concatenation_of_two_list_bcis_with_n (compile_aux ae2) (ADD :: nil) 1).
+    rewrite -> H_verify_aux2 in H_concat2.
+    rewrite -> H_concat2.
+    
+    rewrite -> (fold_unfold_verify_aux_cons ADD nil 2).
+    rewrite -> (fold_unfold_verify_aux_nil 1).
+    reflexivity.
+  - rewrite -> (fold_unfold_compile_aux_Minus ae1 ae2).
+    assert (H_concat1 := concatenation_of_two_list_bcis_with_n (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) 0).
+    assert (H_verify_aux1 := verify_aux_true_implies_Some ae1 0 IHae1).
+    assert (H_verify_aux2 := verify_aux_true_implies_Some ae2 1 IHae2).
+    rewrite -> H_verify_aux1 in H_concat1.
+    rewrite -> H_concat1.
+    
+    assert (H_concat2 := concatenation_of_two_list_bcis_with_n (compile_aux ae2) (SUB :: nil) 1).
+    rewrite -> H_verify_aux2 in H_concat2.
+    rewrite -> H_concat2.
+    
+    rewrite -> (fold_unfold_verify_aux_cons SUB nil 2).
+    rewrite -> (fold_unfold_verify_aux_nil 1).
+    reflexivity.
+Qed.
+
+
 
 (* Subsidiary question:
    What is the practical consequence of this theorem?
