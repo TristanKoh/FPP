@@ -1360,65 +1360,25 @@ Proof.
     rewrite -> fold_unfold_evaluate_Literal in H_nat.
     rewrite -> fold_unfold_compile_aux_Literal.
     Check (fold_unfold_fetch_decode_execute_loop_cons).
-    Check 
-   
-             
-(* PROBLEM HERE *)
-    
-Abort.
+    rewrite -> (fold_unfold_fetch_decode_execute_loop_cons (PUSH n) nil ds).
+    unfold decode_execute.
+    rewrite -> (fold_unfold_fetch_decode_execute_loop_nil (n :: ds)).
+    injection H_nat as H_nat.
+    rewrite -> H_nat.
+    reflexivity.
+  - split.
+    + intros s H_s.
+    (* PROBLEM HERE *)
+Admitted.
 
 
 Theorem the_commutative_diagram :
   forall (sp : source_program),
     interpret sp = run (compile sp).
 Proof.
-  intros sp.
-  destruct sp as [ae].
+  intros [ae].
   unfold compile, interpret.
-  induction ae as [ n | ae1 IHae1 | ae2 IHae2].
-  - rewrite -> fold_unfold_evaluate_Literal.
-    rewrite -> fold_unfold_compile_aux_Literal.
-    unfold run.
-    Check (fold_unfold_fetch_decode_execute_loop_cons).
-    rewrite -> fold_unfold_fetch_decode_execute_loop_cons.
-    
-Abort.
-
-
-Proposition the_capstone :
-  forall ae : arithmetic_expression,
-    interpret (Source_program ae) = run (compile (Source_program ae)).
-Proof.
-  intro ae.
-  unfold interpret.
-  assert (H_compile := compile_satisfies_the_specification_of_compile).
-  unfold specification_of_compile in H_compile.
-  assert (H_compile := H_compile compile_aux compile_aux_satisfies_the_specification_of_compile_aux ae).
-  rewrite -> H_compile.
-  assert (H_compile_aux := compile_aux_satisfies_the_specification_of_compile_aux).
-  unfold specification_of_compile_aux in H_compile_aux.
-  destruct H_compile_aux as [H_compile_aux_Literal [H_compile_aux_Plus H_compile_aux_Minus]].
-  assert (H_run := run_satisfies_the_specification_of_run).
-  unfold specification_of_run in H_run.
-  assert (H_run := H_run
-                      fetch_decode_execute_loop
-                      fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop).
-  destruct H_run as [H_run_1 [H_run_2 [H_run_3 H_run_4]]].
-  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2].
-  - rewrite -> H_compile_aux_Literal.
-    assert (fetch_decode_execute_loop (PUSH n :: nil) nil = OK (n :: nil)).
-    rewrite -> (fold_unfold_fetch_decode_execute_loop_cons (PUSH n) nil).
-    unfold decode_execute.
-    exact (fold_unfold_fetch_decode_execute_loop_nil (n :: nil)).
-    rewrite -> (fold_unfold_evaluate_Literal).
-    admit.
-  - rewrite -> (fold_unfold_evaluate_Plus).
-
-Restart.
-  intro ae.
-  unfold interpret.
-  unfold compile.
-  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2].
+  destruct ae as [n | ae1 ae2 | ae1 ae2].
   - rewrite -> (fold_unfold_compile_aux_Literal n).
     unfold run.
     rewrite -> (fold_unfold_fetch_decode_execute_loop_cons (PUSH n) nil).
@@ -1427,19 +1387,128 @@ Restart.
     rewrite -> (fold_unfold_evaluate_Literal).
     reflexivity.
   - rewrite -> (fold_unfold_compile_aux_Plus ae1 ae2).
-    case (compile_aux ae1) as [n1 | s1] eqn:H_eval_ae1.
+    rewrite -> (fold_unfold_evaluate_Plus ae1 ae2).
+    unfold run.
+    case (evaluate ae1) as [n1 | s1] eqn:H_eval_ae1.
     + case (evaluate ae2) as [n2 | s2] eqn:H_eval_ae2.
-      * unfold run.
-        unfold run in IHae1, IHae2.
-        Check (concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) nil).
-Abort.
+      * assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) nil).
+        destruct H_concat1 as [H_concat1 _].
+        assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
+        destruct H_fdel1 as [_ H_fdel1].
+        assert (H_fdel1 := H_fdel1 n1 H_eval_ae1).
+        assert (H_concat1 := H_concat1 (n1 :: nil) H_fdel1).
+        rewrite <- H_concat1.
 
-Lemma the_capstone_aux :
-  forall ae : arithmetic_expression,
-    interpret (Source_program ae) = run (Target_program (compile_aux ae)).
-Abort.
-
-
+        assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (ADD :: nil) (n1 :: nil)).
+        destruct H_concat2 as [H_concat2 _].
+        assert (H_fdel2 := eureka_lemma_the_commutative_diagram ae2 (n1 :: nil)).
+        destruct H_fdel2 as [_ H_fdel2].
+        assert (H_fdel2 := H_fdel2 n2 H_eval_ae2).
+        assert (H_concat2 := H_concat2 (n2 :: n1 :: nil) H_fdel2).
+        rewrite <- H_concat2.
+        
+        rewrite -> (fold_unfold_fetch_decode_execute_loop_cons ADD nil (n2 :: n1 :: nil)).
+        unfold decode_execute.
+        rewrite -> (fold_unfold_fetch_decode_execute_loop_nil (n1 + n2 :: nil)).
+        reflexivity.
+        
+      * assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) nil).
+        destruct H_concat1 as [H_concat1 _].
+        assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
+        destruct H_fdel1 as [_ H_fdel1].
+        assert (H_fdel1 := H_fdel1 n1 H_eval_ae1).
+        assert (H_concat1 := H_concat1 (n1 :: nil) H_fdel1).
+        rewrite <- H_concat1.
+        
+        assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (ADD :: nil) (n1 :: nil)).
+        destruct H_concat2 as [_ H_concat2].
+        assert (H_fdel2 := eureka_lemma_the_commutative_diagram ae2 (n1 :: nil)).
+        destruct H_fdel2 as [H_fdel2 _].
+        assert (H_fdel2 := H_fdel2 s2 H_eval_ae2).
+        assert (H_concat2 := H_concat2 s2 H_fdel2).
+        rewrite -> H_concat2.
+        reflexivity.
+    + assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) nil).
+      destruct H_concat1 as [_ H_concat1].
+      assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
+      destruct H_fdel1 as [H_fdel1 _].
+      assert (H_fdel1 := H_fdel1 s1 H_eval_ae1).
+      assert (H_concat1 := H_concat1 s1 H_fdel1).
+      rewrite -> H_concat1.
+      reflexivity.
+  - rewrite -> (fold_unfold_compile_aux_Minus ae1 ae2).
+    rewrite -> (fold_unfold_evaluate_Minus ae1 ae2).
+    unfold run.
+    case (evaluate ae1) as [n1 | s1] eqn:H_eval_ae1.
+    + case (evaluate ae2) as [n2 | s2] eqn:H_eval_ae2.
+      * case (n1 <? n2) eqn:H_n1_n2.
+        -- assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) nil).
+           destruct H_concat1 as [H_concat1 _].
+           assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
+           destruct H_fdel1 as [_ H_fdel1].
+           assert (H_fdel1 := H_fdel1 n1 H_eval_ae1).
+           assert (H_concat1 := H_concat1 (n1 :: nil) H_fdel1).
+           rewrite <- H_concat1.
+           
+           assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (SUB :: nil) (n1 :: nil)).
+           destruct H_concat2 as [H_concat2 _].
+           assert (H_fdel2 := eureka_lemma_the_commutative_diagram ae2 (n1 :: nil)).
+           destruct H_fdel2 as [_ H_fdel2].
+           assert (H_fdel2 := H_fdel2 n2 H_eval_ae2).
+           assert (H_concat2 := H_concat2 (n2 :: n1 :: nil) H_fdel2).
+           rewrite <- H_concat2.
+           
+           rewrite -> (fold_unfold_fetch_decode_execute_loop_cons SUB nil (n2 :: n1 :: nil)).
+           unfold decode_execute.
+           rewrite -> H_n1_n2.
+           reflexivity.
+           
+        -- assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) nil).
+           destruct H_concat1 as [H_concat1 _].
+           assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
+           destruct H_fdel1 as [_ H_fdel1].
+           assert (H_fdel1 := H_fdel1 n1 H_eval_ae1).
+           assert (H_concat1 := H_concat1 (n1 :: nil) H_fdel1).
+           rewrite <- H_concat1.
+           
+           assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (SUB :: nil) (n1 :: nil)).
+           destruct H_concat2 as [H_concat2 _].
+           assert (H_fdel2 := eureka_lemma_the_commutative_diagram ae2 (n1 :: nil)).
+           destruct H_fdel2 as [_ H_fdel2].
+           assert (H_fdel2 := H_fdel2 n2 H_eval_ae2).
+           assert (H_concat2 := H_concat2 (n2 :: n1 :: nil) H_fdel2).
+           rewrite <- H_concat2.
+                   
+           rewrite -> (fold_unfold_fetch_decode_execute_loop_cons SUB nil (n2 :: n1 :: nil)).
+           unfold decode_execute.
+           rewrite -> H_n1_n2.
+           rewrite -> (fold_unfold_fetch_decode_execute_loop_nil (n1 - n2 :: nil)).
+           reflexivity.
+      * assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) nil).
+        destruct H_concat1 as [H_concat1 _].
+        assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
+        destruct H_fdel1 as [_ H_fdel1].
+        assert (H_fdel1 := H_fdel1 n1 H_eval_ae1).
+        assert (H_concat1 := H_concat1 (n1 :: nil) H_fdel1).
+        rewrite <- H_concat1.
+        
+        assert (H_concat2 := concatenation_of_two_list_bcis_with_ds (compile_aux ae2) (SUB :: nil) (n1 :: nil)).
+        destruct H_concat2 as [_ H_concat2].
+        assert (H_fdel2 := eureka_lemma_the_commutative_diagram ae2 (n1 :: nil)).
+        destruct H_fdel2 as [H_fdel2 _].
+        assert (H_fdel2 := H_fdel2 s2 H_eval_ae2).
+        assert (H_concat2 := H_concat2 s2 H_fdel2).
+        rewrite -> H_concat2.
+        reflexivity.
+    + assert (H_concat1 := concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ SUB :: nil) nil).
+      destruct H_concat1 as [_ H_concat1].
+      assert (H_fdel1 := eureka_lemma_the_commutative_diagram ae1 nil).
+      destruct H_fdel1 as [H_fdel1 _].
+      assert (H_fdel1 := H_fdel1 s1 H_eval_ae1).
+      assert (H_concat1 := H_concat1 s1 H_fdel1).
+      rewrite -> H_concat1.
+      reflexivity.
+Qed.
 
 (* ********** *)
 
