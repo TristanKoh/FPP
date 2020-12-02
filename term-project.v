@@ -1051,7 +1051,7 @@ Proof.
   fold_unfold_tactic compile_aux.
 Qed.
 
-Lemma fold_unfold_compile_aux_Add :
+Lemma fold_unfold_compile_aux_Plus :
   forall (ae1 ae2 : arithmetic_expression),
     compile_aux (Plus ae1 ae2) =
     (compile_aux ae1) ++ (compile_aux ae2) ++ (ADD :: nil).
@@ -1077,7 +1077,7 @@ Proof.
     exact (fold_unfold_compile_aux_Literal n).
   - split.
     * intros ae1 ae2.
-      exact (fold_unfold_compile_aux_Add ae1 ae2).
+      exact (fold_unfold_compile_aux_Plus ae1 ae2).
     * intros ae1 ae2.
       exact (fold_unfold_compile_aux_Minus ae1 ae2).
 Qed.
@@ -1224,7 +1224,7 @@ Proof.
     reflexivity.
   - intro a.
     rewrite -> fold_unfold_compile_aux_acc_Plus.
-    rewrite -> fold_unfold_compile_aux_Add.
+    rewrite -> fold_unfold_compile_aux_Plus.
     rewrite -> IHae2.
     rewrite -> IHae1.
     Check (List.app_assoc).
@@ -1338,6 +1338,63 @@ Qed.
    as first compiling it and then executing the compiled program.
 *)
 
+
+Proposition the_capstone :
+  forall ae : arithmetic_expression,
+    interpret (Source_program ae) = run (compile (Source_program ae)).
+Proof.
+  intro ae.
+  unfold interpret.
+  assert (H_compile := compile_satisfies_the_specification_of_compile).
+  unfold specification_of_compile in H_compile.
+  assert (H_compile := H_compile compile_aux compile_aux_satisfies_the_specification_of_compile_aux ae).
+  rewrite -> H_compile.
+  assert (H_compile_aux := compile_aux_satisfies_the_specification_of_compile_aux).
+  unfold specification_of_compile_aux in H_compile_aux.
+  destruct H_compile_aux as [H_compile_aux_Literal [H_compile_aux_Plus H_compile_aux_Minus]].
+  assert (H_run := run_satisfies_the_specification_of_run).
+  unfold specification_of_run in H_run.
+  assert (H_run := H_run
+                      fetch_decode_execute_loop
+                      fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop).
+  destruct H_run as [H_run_1 [H_run_2 [H_run_3 H_run_4]]].
+  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2].
+  - rewrite -> H_compile_aux_Literal.
+    assert (fetch_decode_execute_loop (PUSH n :: nil) nil = OK (n :: nil)).
+    rewrite -> (fold_unfold_fetch_decode_execute_loop_cons (PUSH n) nil).
+    unfold decode_execute.
+    exact (fold_unfold_fetch_decode_execute_loop_nil (n :: nil)).
+    rewrite -> (fold_unfold_evaluate_Literal).
+    admit.
+  - rewrite -> (fold_unfold_evaluate_Plus).
+
+Restart.
+  intro ae.
+  unfold interpret.
+  unfold compile.
+  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2].
+  - rewrite -> (fold_unfold_compile_aux_Literal n).
+    unfold run.
+    rewrite -> (fold_unfold_fetch_decode_execute_loop_cons (PUSH n) nil).
+    unfold decode_execute.
+    rewrite -> (fold_unfold_fetch_decode_execute_loop_nil (n :: nil)).
+    rewrite -> (fold_unfold_evaluate_Literal).
+    reflexivity.
+  - rewrite -> (fold_unfold_compile_aux_Plus ae1 ae2).
+    case (compile_aux ae1) as [n1 | s1] eqn:H_eval_ae1.
+    + case (evaluate ae2) as [n2 | s2] eqn:H_eval_ae2.
+      * unfold run.
+        unfold run in IHae1, IHae2.
+        Check (concatenation_of_two_list_bcis_with_ds (compile_aux ae1) (compile_aux ae2 ++ ADD :: nil) nil).
+Abort.
+
+Lemma the_capstone_aux :
+  forall ae : arithmetic_expression,
+    interpret (Source_program ae) = run (Target_program (compile_aux ae)).
+Abort.
+
+
+
 (* ********** *)
 
 (* Byte-code verification:
@@ -1388,13 +1445,90 @@ Definition verify (p : target_program) : bool :=
    that is accepted by the verifier.
 *)
 
-(*
+Lemma fold_unfold_verify_aux_nil :
+  forall n : nat,
+    verify_aux nil n = Some n.
+Proof.
+  fold_unfold_tactic verify_aux.
+Qed.
+
+Lemma fold_unfold_verify_aux_cons :
+  forall (bci : byte_code_instruction)
+         (bcis' : list byte_code_instruction)
+         (n : nat),
+    verify_aux (bci :: bcis') n =
+       match bci with
+        | PUSH _ =>
+          verify_aux bcis' (S n)
+        | _ =>
+          match n with
+            | S (S n') =>
+              verify_aux bcis' (S n')
+            | _ =>
+              None
+          end
+      end.
+Proof.
+  fold_unfold_tactic verify_aux.
+Qed.
+
+
+Lemma the_compiler_emits_well_behaved_code_aux :
+  forall (bcis : list byte_code_instruction)
+         (bcis' : list byte_code_instruction)
+         (n : nat),
+  verify_aux (bcis ++ bcis') n =
+     match verify_aux bcis n with
+     | Some n' => verify_aux bcis' n'
+     | None => None
+     end.
+Proof.
+  intro bcis.
+  induction bcis as [ | bci bcis IHbcis]; intros bcis' n.
+  - rewrite -> (fold_unfold_append_nil bcis').
+    rewrite -> (fold_unfold_verify_aux_nil n).
+    reflexivity.
+  - rewrite -> (fold_unfold_append_cons bci bcis bcis').
+    rewrite -> (fold_unfold_verify_aux_cons bci (bcis ++ bcis') n).
+    rewrite -> (fold_unfold_verify_aux_cons bci bcis n).
+    rewrite -> (IHbcis bcis' (S n)).
+    case bci.
+    + intro n''.
+      reflexivity.
+    + case n.
+      * reflexivity.
+      * intro n0.
+        case n0.
+        -- reflexivity.
+        -- intro n1.
+           rewrite -> (IHbcis bcis' (S n1)).
+           reflexivity.
+    + case n.
+      * reflexivity.
+      * intro n0.
+        case n0.
+        -- reflexivity.
+        -- intro n1.
+           rewrite -> (IHbcis bcis' (S n1)).
+           reflexivity.
+Qed.
+
 Theorem the_compiler_emits_well_behaved_code :
   forall sp : source_program,
     verify (compile sp) = true.
 Proof.
+  intros [ae].
+  unfold compile.
+  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2].
+  - rewrite -> (fold_unfold_compile_aux_Literal n).
+    unfold verify.
+    rewrite -> (fold_unfold_verify_aux_cons (PUSH n) nil 0).
+    rewrite -> (fold_unfold_verify_aux_nil 1).
+    reflexivity.
+  - rewrite -> (fold_unfold_compile_aux_Plus ae1 ae2).
+    unfold verify.
+    unfold verify in IHae1, IHae2.
 Abort.
-*)
 
 (* Subsidiary question:
    What is the practical consequence of this theorem?
