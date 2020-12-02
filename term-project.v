@@ -1336,7 +1336,53 @@ Qed.
 (* Task 9 (the capstone):
    Prove that interpreting an arithmetic expression gives the same result
    as first compiling it and then executing the compiled program.
-*)
+ *)
+
+            
+Lemma eureka_lemma_the_commutative_diagram :
+   forall(ae : arithmetic_expression)
+         (ds : data_stack),
+     (forall (s : string),
+         evaluate ae = Expressible_msg s ->
+         fetch_decode_execute_loop (compile_aux ae) ds = KO s)
+     /\
+     (forall (n : nat),
+         evaluate ae = Expressible_nat n ->
+         fetch_decode_execute_loop (compile_aux ae) ds = OK (n :: ds)).
+Proof.
+  intros ae.
+  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2]; intro ds.
+  split.
+  - intros s H_s.
+    rewrite -> fold_unfold_evaluate_Literal in H_s.
+    discriminate H_s.
+  - intros n' H_nat.
+    rewrite -> fold_unfold_evaluate_Literal in H_nat.
+    rewrite -> fold_unfold_compile_aux_Literal.
+    Check (fold_unfold_fetch_decode_execute_loop_cons).
+    Check 
+   
+             
+(* PROBLEM HERE *)
+    
+Abort.
+
+
+Theorem the_commutative_diagram :
+  forall (sp : source_program),
+    interpret sp = run (compile sp).
+Proof.
+  intros sp.
+  destruct sp as [ae].
+  unfold compile, interpret.
+  induction ae as [ n | ae1 IHae1 | ae2 IHae2].
+  - rewrite -> fold_unfold_evaluate_Literal.
+    rewrite -> fold_unfold_compile_aux_Literal.
+    unfold run.
+    Check (fold_unfold_fetch_decode_execute_loop_cons).
+    rewrite -> fold_unfold_fetch_decode_execute_loop_cons.
+    
+Abort.
 
 (* ********** *)
 
