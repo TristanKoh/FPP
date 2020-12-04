@@ -228,27 +228,35 @@ Proof.
                              [[H_eval2_Plus_msg1 [H_eval2_Plus_msg2 H_eval2_Plus_nat]]
                                 [H_eval2_Minus_msg1 [H_eval2_Minus_msg2 [H_eval2_Minus_underflow H_eval2_Minus_nat]]]]].
   induction ae as [n | ae1 H_eval1_ae1 ae2 H_eval1_ae2 | ae1 H_eval1_ae1 ae2 H_eval1_ae2].
-  - rewrite -> (H_eval2_Literal n).
-    exact (H_eval1_Literal n).
+  - rewrite -> (H_eval1_Literal n).
+    rewrite -> (H_eval2_Literal n).
+    reflexivity.
   - case (evaluate2 ae1) as [n1 | s1] eqn:H_eval2_ae1.
     + case (evaluate2 ae2) as [n2 | s2] eqn:H_eval2_ae2.
-      * rewrite -> (H_eval2_Plus_nat ae1 ae2 n1 n2 H_eval2_ae1 H_eval2_ae2).
-        exact (H_eval1_Plus_nat ae1 ae2 n1 n2 H_eval1_ae1 H_eval1_ae2).
-      * rewrite -> (H_eval2_Plus_msg2 ae1 ae2 n1 s2 H_eval2_ae1 H_eval2_ae2).
-        exact (H_eval1_Plus_msg2 ae1 ae2 n1 s2 H_eval1_ae1 H_eval1_ae2).
-    + rewrite -> (H_eval2_Plus_msg1 ae1 ae2 s1 H_eval2_ae1).
-      exact (H_eval1_Plus_msg1 ae1 ae2 s1 H_eval1_ae1).
+      * rewrite -> (H_eval1_Plus_nat ae1 ae2 n1 n2 H_eval1_ae1 H_eval1_ae2).
+        rewrite -> (H_eval2_Plus_nat ae1 ae2 n1 n2 H_eval2_ae1 H_eval2_ae2).
+        reflexivity.
+      * rewrite -> (H_eval1_Plus_msg2 ae1 ae2 n1 s2 H_eval1_ae1 H_eval1_ae2).
+        rewrite -> (H_eval2_Plus_msg2 ae1 ae2 n1 s2 H_eval2_ae1 H_eval2_ae2).
+        reflexivity.
+    + rewrite -> (H_eval1_Plus_msg1 ae1 ae2 s1 H_eval1_ae1).
+      rewrite -> (H_eval2_Plus_msg1 ae1 ae2 s1 H_eval2_ae1).
+      reflexivity.
   - case (evaluate2 ae1) as [n1 | s1] eqn:H_eval2_ae1.
     + case (evaluate2 ae2) as [n2 | s2] eqn:H_eval2_ae2.
       * case (n1 <? n2) eqn:H_n1_n2.
-        -- rewrite -> (H_eval2_Minus_underflow ae1 ae2 n1 n2 H_eval2_ae1 H_eval2_ae2 H_n1_n2).
-           exact (H_eval1_Minus_underflow ae1 ae2 n1 n2 H_eval1_ae1 H_eval1_ae2 H_n1_n2).
-        -- rewrite -> (H_eval2_Minus_nat ae1 ae2 n1 n2 H_eval2_ae1 H_eval2_ae2 H_n1_n2).
-           exact (H_eval1_Minus_nat ae1 ae2 n1 n2 H_eval1_ae1 H_eval1_ae2 H_n1_n2).
-      * rewrite -> (H_eval2_Minus_msg2 ae1 ae2 n1 s2 H_eval2_ae1 H_eval2_ae2).
-        exact (H_eval1_Minus_msg2 ae1 ae2 n1 s2 H_eval1_ae1 H_eval1_ae2).
-    + rewrite -> (H_eval2_Minus_msg1 ae1 ae2 s1 H_eval2_ae1).
-      exact (H_eval1_Minus_msg1 ae1 ae2 s1 H_eval1_ae1).
+        -- rewrite -> (H_eval1_Minus_underflow ae1 ae2 n1 n2 H_eval1_ae1 H_eval1_ae2 H_n1_n2).
+           rewrite -> (H_eval2_Minus_underflow ae1 ae2 n1 n2 H_eval2_ae1 H_eval2_ae2 H_n1_n2).
+           reflexivity.
+        -- rewrite -> (H_eval1_Minus_nat ae1 ae2 n1 n2 H_eval1_ae1 H_eval1_ae2 H_n1_n2).
+           rewrite -> (H_eval2_Minus_nat ae1 ae2 n1 n2 H_eval2_ae1 H_eval2_ae2 H_n1_n2).
+           reflexivity.
+      * rewrite -> (H_eval1_Minus_msg2 ae1 ae2 n1 s2 H_eval1_ae1 H_eval1_ae2).
+        rewrite -> (H_eval2_Minus_msg2 ae1 ae2 n1 s2 H_eval2_ae1 H_eval2_ae2).
+        reflexivity.
+    + rewrite -> (H_eval1_Minus_msg1 ae1 ae2 s1 H_eval1_ae1).
+      rewrite -> (H_eval2_Minus_msg1 ae1 ae2 s1 H_eval2_ae1).
+      reflexivity.
 Qed.
 
 Fixpoint evaluate (ae : arithmetic_expression) : expressible_value :=
@@ -373,9 +381,10 @@ Proposition there_is_at_most_one_interpret :
     forall sp : source_program,
       interpret1 sp = interpret2 sp.
 Proof.
-  intros interpret1 interpret2 H_specification_interpret1 H_specification_interpret2 [ae].  
-  rewrite -> (H_specification_interpret1 evaluate evaluate_satisfies_the_specification_of_evaluate ae).
-  rewrite -> (H_specification_interpret2 evaluate evaluate_satisfies_the_specification_of_evaluate ae).
+  intros interpret1 interpret2 S_interpret1 S_interpret2 [ae].
+  unfold specification_of_interpret in S_interpret1, S_interpret2.
+  rewrite -> (S_interpret1 evaluate evaluate_satisfies_the_specification_of_evaluate ae).
+  rewrite -> (S_interpret2 evaluate evaluate_satisfies_the_specification_of_evaluate ae).
   reflexivity.
 Qed.
 
@@ -594,27 +603,6 @@ Definition specification_of_fetch_decode_execute_loop (fetch_decode_execute_loop
    c. verify that your function satisfies the specification.
 *)
 
-
-Lemma there_is_at_most_one_fetch_decode_execute_loop_aux :
-  forall (decode_execute : byte_code_instruction -> data_stack -> result_of_decoding_and_execution)
-         (bci : byte_code_instruction)
-         (ds : data_stack),
-    (exists ds' : data_stack,
-        decode_execute bci ds = OK ds')
-    \/
-    (exists s : string,
-        decode_execute bci ds = KO s).
-Proof.
-  intros de bci ds.
-  destruct (de bci ds) as [ds' | s].
-  - left.
-    exists ds'.
-    reflexivity.
-  - right.
-    exists s.
-    reflexivity.
-Qed.
-
 Proposition there_is_at_most_one_fetch_decode_execute_loop :
   forall fetch_decode_execute_loop1 fetch_decode_execute_loop2 : list byte_code_instruction -> data_stack -> result_of_decoding_and_execution,
     specification_of_fetch_decode_execute_loop fetch_decode_execute_loop1 ->
@@ -624,36 +612,33 @@ Proposition there_is_at_most_one_fetch_decode_execute_loop :
       fetch_decode_execute_loop1 bcis ds = fetch_decode_execute_loop2 bcis ds.
 Proof.
   intros loop1 loop2 S_loop1 S_loop2 bcis.
+  unfold specification_of_fetch_decode_execute_loop in S_loop1, S_loop2.
+  assert (S_loop1 := S_loop1 decode_execute decode_execute_satisfies_the_specification_of_decode_execute).
+  assert (S_loop2 := S_loop2 decode_execute decode_execute_satisfies_the_specification_of_decode_execute).
+  destruct S_loop1 as [H_loop1_nil [H_loop1_cons_OK H_loop1_cons_KO]].
+  destruct S_loop2 as [H_loop2_nil [H_loop2_cons_OK H_loop2_cons_KO]].
   induction bcis as [ | bci bcis' IHbcis']; intro ds.
-  - unfold specification_of_fetch_decode_execute_loop in S_loop1.
-    destruct (S_loop1 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [fold_unfold_loop1_nil _].
-    destruct (S_loop2 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [fold_unfold_loop2_nil _].
-    rewrite -> (fold_unfold_loop1_nil ds).
-    rewrite -> (fold_unfold_loop2_nil ds).
+  - rewrite -> (H_loop1_nil ds).
+    rewrite -> (H_loop2_nil ds).
     reflexivity.
-  - destruct (S_loop1 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [_ [fold_unfold_loop1_cons_OK _]].
-    destruct (S_loop2 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [_ [fold_unfold_loop2_cons_OK _]].
-    Check (there_is_at_most_one_fetch_decode_execute_loop_aux decode_execute bci ds).
-    destruct (there_is_at_most_one_fetch_decode_execute_loop_aux decode_execute bci ds) as [[ds' H_ds] | [s H_s]].
-    + rewrite -> (fold_unfold_loop1_cons_OK bci bcis' ds ds' H_ds).
-      rewrite -> (fold_unfold_loop2_cons_OK bci bcis' ds ds' H_ds).
+  - case (decode_execute bci ds) as [ds' | s] eqn:H_de.
+    + rewrite -> (H_loop1_cons_OK bci bcis' ds ds' H_de).
+      rewrite -> (H_loop2_cons_OK bci bcis' ds ds' H_de).
       rewrite -> (IHbcis' ds').
       reflexivity.
-    + destruct (S_loop1 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [_ [_ fold_unfold_loop1_cons_KO]].
-      destruct (S_loop2 decode_execute decode_execute_satisfies_the_specification_of_decode_execute) as [_ [_ fold_unfold_loop2_cons_KO]].
-      rewrite -> (fold_unfold_loop1_cons_KO bci bcis' ds s H_s).
-      rewrite -> (fold_unfold_loop2_cons_KO bci bcis' ds s H_s).
+    + rewrite -> (H_loop1_cons_KO bci bcis' ds s H_de).
+      rewrite -> (H_loop2_cons_KO bci bcis' ds s H_de).
       reflexivity.
 Qed.
 
-Fixpoint fetch_decode_execute_loop (bcis' : list byte_code_instruction) (ds : data_stack) : result_of_decoding_and_execution :=
-  match bcis' with
+Fixpoint fetch_decode_execute_loop (bcis : list byte_code_instruction) (ds : data_stack) : result_of_decoding_and_execution :=
+  match bcis with
   | nil =>
     OK ds
-  | bci :: bcis'' =>
+  | bci :: bcis' =>
     match decode_execute bci ds with
     | OK ds' =>
-      fetch_decode_execute_loop bcis'' ds'
+      fetch_decode_execute_loop bcis' ds'
     | KO s =>
       KO s
     end
@@ -686,35 +671,35 @@ Theorem fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_ex
   specification_of_fetch_decode_execute_loop fetch_decode_execute_loop.
 Proof.
   unfold specification_of_fetch_decode_execute_loop.
-  intros decode_execute' H_decode_execute.
+  intros decode_execute' S_decode_execute'.
   split.
   - exact fold_unfold_fetch_decode_execute_loop_nil.
   - split.
-    + intros bci bcis' ds ds' H_decode_execute_bci_ds.
+    + intros bci bcis' ds ds' H_decode_execute'_bci_ds.
       rewrite -> (fold_unfold_fetch_decode_execute_loop_cons bci bcis' ds).
       Check (there_is_at_most_one_decode_execute).
       Check (there_is_at_most_one_decode_execute
                decode_execute'
                decode_execute
-               H_decode_execute
+               S_decode_execute'
                decode_execute_satisfies_the_specification_of_decode_execute
                bci
                ds).
       rewrite -> (there_is_at_most_one_decode_execute
                     decode_execute'
                     decode_execute
-                    H_decode_execute
+                    S_decode_execute'
                     decode_execute_satisfies_the_specification_of_decode_execute
                     bci
-                    ds) in H_decode_execute_bci_ds.
-      rewrite -> H_decode_execute_bci_ds.
+                    ds) in H_decode_execute'_bci_ds.
+      rewrite -> H_decode_execute'_bci_ds.
       reflexivity.
     + intros bci bcis' ds s H_decode_execute'_bci_ds.
       rewrite -> (fold_unfold_fetch_decode_execute_loop_cons bci bcis' ds).
       rewrite -> (there_is_at_most_one_decode_execute
                     decode_execute'
                     decode_execute
-                    H_decode_execute
+                    S_decode_execute'
                     decode_execute_satisfies_the_specification_of_decode_execute
                     bci
                     ds) in H_decode_execute'_bci_ds.
@@ -764,36 +749,33 @@ Theorem concatenation_of_two_list_bcis_with_ds :
 Proof.
   intros bcis1.
   induction bcis1 as [ | bci1 bcis1' IHbcis1']; intros bcis2 ds; split.
-  - intros ds' H_fetch_decode_execute_loop.
+  - intros ds' H_loop_bcis1.
     rewrite -> (fold_unfold_append_nil bcis2).
-    rewrite -> (fold_unfold_fetch_decode_execute_loop_nil ds) in H_fetch_decode_execute_loop.
-    injection H_fetch_decode_execute_loop as H_ds.
+    rewrite -> (fold_unfold_fetch_decode_execute_loop_nil ds) in H_loop_bcis1.
+    injection H_loop_bcis1 as H_ds.
     rewrite -> H_ds.
     reflexivity.
-  - intros s H_fetch_decode_execute_loop.
-    rewrite -> (fold_unfold_fetch_decode_execute_loop_nil ds) in H_fetch_decode_execute_loop.
-    discriminate H_fetch_decode_execute_loop.
-  - intros ds' H_fetch_decode_execute_loop.
+  - intros s H_loop_bcis1.
+    rewrite -> (fold_unfold_fetch_decode_execute_loop_nil ds) in H_loop_bcis1.
+    discriminate H_loop_bcis1.
+  - intros ds' H_loop_bcis1.
     rewrite -> (fold_unfold_append_cons bci1 bcis1' bcis2).
     rewrite -> (fold_unfold_fetch_decode_execute_loop_cons bci1 (bcis1' ++ bcis2) ds).
-    rewrite -> (fold_unfold_fetch_decode_execute_loop_cons bci1 bcis1' ds) in H_fetch_decode_execute_loop.
+    rewrite -> (fold_unfold_fetch_decode_execute_loop_cons bci1 bcis1' ds) in H_loop_bcis1.
     case (decode_execute bci1 ds) as [ds'' | s].
     + destruct (IHbcis1' bcis2 ds'') as [IHds'' _].
-      exact (IHds'' ds' H_fetch_decode_execute_loop).
+      exact (IHds'' ds' H_loop_bcis1).
     + destruct (IHbcis1' bcis2 ds') as [IHds'' _].
-      discriminate H_fetch_decode_execute_loop.
-  - intros s H_fetch_decode_execute_loop.
+      discriminate H_loop_bcis1.
+  - intros s H_loop_bcis1.
     rewrite -> (fold_unfold_append_cons bci1 bcis1' bcis2).
     rewrite -> (fold_unfold_fetch_decode_execute_loop_cons bci1 (bcis1' ++ bcis2) ds).
-    rewrite -> (fold_unfold_fetch_decode_execute_loop_cons bci1 bcis1' ds) in H_fetch_decode_execute_loop.
+    rewrite -> (fold_unfold_fetch_decode_execute_loop_cons bci1 bcis1' ds) in H_loop_bcis1.
     case (decode_execute bci1 ds) as [ds' | s'].
     + destruct (IHbcis1' bcis2 ds') as [_ IHs].
-      exact (IHs s H_fetch_decode_execute_loop).
-    + exact H_fetch_decode_execute_loop.
+      exact (IHs s H_loop_bcis1).
+    + exact H_loop_bcis1.
 Qed. 
-
-      
-    
 
 (* ********** *)
 
@@ -826,25 +808,6 @@ Definition specification_of_run (run : target_program -> expressible_value) :=
    c. verify that your function satisfies the specification.
  *)
 
-Lemma there_is_at_most_one_run_aux :
-  forall (fetch_decode_execute_loop : list byte_code_instruction -> data_stack -> result_of_decoding_and_execution)
-         (bcis : list byte_code_instruction),
-    (exists ds : data_stack,
-        fetch_decode_execute_loop bcis nil = OK ds)
-    \/
-    (exists s : string,
-        fetch_decode_execute_loop bcis nil = KO s).
-Proof.
-  intros fetch_decode_execute_loop bcis.
-  destruct (fetch_decode_execute_loop bcis nil) as [ds | s].
-  - left.
-    exists ds.
-    reflexivity.
-  - right.
-    exists s.
-    reflexivity.
-Qed.
-
 
 Proposition there_is_at_most_one_run :
   forall (decode_execute : byte_code_instruction -> data_stack -> result_of_decoding_and_execution),
@@ -857,26 +820,48 @@ Proposition there_is_at_most_one_run :
         forall (tp : target_program),
           run1 tp = run2 tp.
 Proof.
-  intros decode_execute H_decode_execute fetch_decode_execute_loop H_fetch_decode_execute_loop run1 run2 H_run1 H_run2 [bcis].
-  Check (H_run1 fetch_decode_execute_loop H_fetch_decode_execute_loop).
-  destruct (H_run1 fetch_decode_execute_loop H_fetch_decode_execute_loop) as
-      [H_run1_nil [H_run1_n_nil [H_run1_n_n'_nil H_run1_s]]].
-  destruct (H_run2 fetch_decode_execute_loop H_fetch_decode_execute_loop) as
-      [H_run2_nil [H_run2_n_nil [H_run2_n_n'_nil H_run2_s]]].
-  case (there_is_at_most_one_run_aux fetch_decode_execute_loop bcis) as [[ds H_ds] | [s H_s]].
+  intros decode_execute H_decode_execute fetch_decode_execute_loop H_fetch_decode_execute_loop run1 run2 S_run1 S_run2 [bcis].
+  unfold specification_of_run in S_run1, S_run2.
+  assert (S_run1 := S_run1 fetch_decode_execute_loop H_fetch_decode_execute_loop). 
+  assert (S_run2 := S_run2 fetch_decode_execute_loop H_fetch_decode_execute_loop).
+  destruct S_run1 as [H_run1_nil [H_run1_n [H_run1_n_n' H_run1_s]]].
+  destruct S_run2 as [H_run2_nil [H_run2_n [H_run2_n_n' H_run2_s]]].
+  case (fetch_decode_execute_loop bcis nil) as [ds | s] eqn:H_loop.
   - case ds as [ | n ds'].
-    + rewrite -> (H_run1_nil bcis H_ds).
-      rewrite -> (H_run2_nil bcis H_ds).
+    + rewrite -> (H_run1_nil bcis H_loop).
+      rewrite -> (H_run2_nil bcis H_loop).
       reflexivity.
     + case ds' as [ | n' ds''].
-      * rewrite -> (H_run1_n_nil bcis n H_ds).
-        rewrite -> (H_run2_n_nil bcis n H_ds).
+      * rewrite -> (H_run1_n bcis n H_loop).
+        rewrite -> (H_run2_n bcis n H_loop).
         reflexivity.
-      * rewrite -> (H_run1_n_n'_nil bcis n n' ds'' H_ds).
-        rewrite -> (H_run2_n_n'_nil bcis n n' ds'' H_ds).
+      * rewrite -> (H_run1_n_n' bcis n n' ds'' H_loop).
+        rewrite -> (H_run2_n_n' bcis n n' ds'' H_loop).
         reflexivity.
-  - rewrite -> (H_run1_s bcis s H_s).
-    rewrite -> (H_run2_s bcis s H_s).
+  - rewrite -> (H_run1_s bcis s H_loop).
+    rewrite -> (H_run2_s bcis s H_loop).
+    reflexivity.
+
+Restart.
+
+  intros decode_execute H_decode_execute fetch_decode_execute_loop H_fetch_decode_execute_loop run1 run2 S_run1 S_run2 [bcis].
+  unfold specification_of_run in S_run1, S_run2.
+  assert (S_run1 := S_run1 fetch_decode_execute_loop H_fetch_decode_execute_loop). 
+  assert (S_run2 := S_run2 fetch_decode_execute_loop H_fetch_decode_execute_loop).
+  destruct S_run1 as [H_run1_nil [H_run1_n [H_run1_n_n' H_run1_s]]].
+  destruct S_run2 as [H_run2_nil [H_run2_n [H_run2_n_n' H_run2_s]]].
+  case (fetch_decode_execute_loop bcis nil) as [[ | n [ | n' ds'']] | s] eqn:H_loop.
+  - rewrite -> (H_run1_nil bcis H_loop).
+    rewrite -> (H_run2_nil bcis H_loop).
+    reflexivity.
+  - rewrite -> (H_run1_n bcis n H_loop).
+    rewrite -> (H_run2_n bcis n H_loop).
+    reflexivity.
+  - rewrite -> (H_run1_n_n' bcis n n' ds'' H_loop).
+    rewrite -> (H_run2_n_n' bcis n n' ds'' H_loop).
+    reflexivity.
+  - rewrite -> (H_run1_s bcis s H_loop).
+    rewrite -> (H_run2_s bcis s H_loop).
     reflexivity.
 Qed.
 
@@ -899,7 +884,7 @@ Theorem run_satisfies_the_specification_of_run :
   specification_of_run run.
 Proof.
   unfold specification_of_run.
-  intros fetch_decode_execute_loop' H_specification_of_fetch.
+  intros fetch_decode_execute_loop' S_loop.
   split.
   - intros bcis H_fetch_decode_execute_loop_nil.
     unfold run.
@@ -907,14 +892,14 @@ Proof.
     Check (there_is_at_most_one_fetch_decode_execute_loop
              fetch_decode_execute_loop'
              fetch_decode_execute_loop
-             H_specification_of_fetch
+             S_loop
              fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop
              bcis
              nil).
     rewrite -> (there_is_at_most_one_fetch_decode_execute_loop
                   fetch_decode_execute_loop'
                   fetch_decode_execute_loop
-                  H_specification_of_fetch
+                  S_loop
                   fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop
                   bcis
                   nil) in H_fetch_decode_execute_loop_nil.
@@ -926,7 +911,7 @@ Proof.
       rewrite -> (there_is_at_most_one_fetch_decode_execute_loop
                     fetch_decode_execute_loop'
                     fetch_decode_execute_loop
-                    H_specification_of_fetch
+                    S_loop
                     fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop
                     bcis
                     nil) in H_fetch_decode_execute_loop'.
@@ -938,7 +923,7 @@ Proof.
         rewrite -> (there_is_at_most_one_fetch_decode_execute_loop
                       fetch_decode_execute_loop'
                       fetch_decode_execute_loop
-                      H_specification_of_fetch
+                      S_loop
                       fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop
                       bcis
                       nil) in H_fetch_decode_execute_loop'.
@@ -949,7 +934,7 @@ Proof.
         rewrite -> (there_is_at_most_one_fetch_decode_execute_loop
                       fetch_decode_execute_loop'
                       fetch_decode_execute_loop
-                      H_specification_of_fetch
+                      S_loop
                       fetch_decode_execute_loop_satisfies_the_specification_of_fetch_decode_execute_loop
                       bcis
                       nil) in H_fetch_decode_execute_loop'.
@@ -1312,15 +1297,15 @@ Proof.
       * destruct (concatenation_of_two_list_bcis_with_ds
                     (compile_aux ae1)
                     (compile_aux ae2 ++ ADD :: nil) ds) as [H_concat1 _].
-        destruct (IHae1 ds) as [H_fdel1 _].
-        Check (H_fdel1 n1 (eq_refl (Expressible_nat n1))).
-        Check (H_concat1 (n1 :: ds) (H_fdel1 n1 (eq_refl (Expressible_nat n1)))).
-        rewrite <- (H_concat1 (n1 :: ds) (H_fdel1 n1 (eq_refl (Expressible_nat n1)))).
+        destruct (IHae1 ds) as [H_loop1 _].
+        Check (H_loop1 n1 (eq_refl (Expressible_nat n1))).
+        Check (H_concat1 (n1 :: ds) (H_loop1 n1 (eq_refl (Expressible_nat n1)))).
+        rewrite <- (H_concat1 (n1 :: ds) (H_loop1 n1 (eq_refl (Expressible_nat n1)))).
         destruct (concatenation_of_two_list_bcis_with_ds
                     (compile_aux ae2)
                     (ADD :: nil) (n1 :: ds)) as [H_concat2 _].
-        destruct (IHae2 (n1 :: ds)) as [H_fdel2 _].
-        rewrite <- (H_concat2 (n2 :: n1 :: ds) (H_fdel2 n2 (eq_refl (Expressible_nat n2)))).
+        destruct (IHae2 (n1 :: ds)) as [H_loop2 _].
+        rewrite <- (H_concat2 (n2 :: n1 :: ds) (H_loop2 n2 (eq_refl (Expressible_nat n2)))).
         rewrite -> (fold_unfold_fetch_decode_execute_loop_cons ADD nil (n2 :: n1 :: ds)).
         unfold decode_execute.
         rewrite -> (fold_unfold_fetch_decode_execute_loop_nil (n1 + n2 :: ds)).
@@ -1338,19 +1323,19 @@ Proof.
       * destruct (concatenation_of_two_list_bcis_with_ds
                     (compile_aux ae1)
                     (compile_aux ae2 ++ ADD :: nil) ds) as [H_concat1 _].
-        destruct (IHae1 ds) as [H_fdel1 _].
-        rewrite <- (H_concat1 (n1 :: ds) (H_fdel1 n1 (eq_refl (Expressible_nat n1)))).
+        destruct (IHae1 ds) as [H_loop1 _].
+        rewrite <- (H_concat1 (n1 :: ds) (H_loop1 n1 (eq_refl (Expressible_nat n1)))).
         destruct (concatenation_of_two_list_bcis_with_ds
                     (compile_aux ae2)
                     (ADD :: nil) (n1 :: ds)) as [_ H_concat2].
-        destruct (IHae2 (n1 :: ds)) as [_ H_fdel2].
-        rewrite -> (H_concat2 s (H_fdel2 s H_s)).
+        destruct (IHae2 (n1 :: ds)) as [_ H_loop2].
+        rewrite -> (H_concat2 s (H_loop2 s H_s)).
         reflexivity.
     + destruct (concatenation_of_two_list_bcis_with_ds
                   (compile_aux ae1)
                   (compile_aux ae2 ++ ADD :: nil) ds) as [_ H_concat1].
-      destruct (IHae1 ds) as [_ H_fdel1].
-      rewrite <- (H_concat1 s (H_fdel1 s H_s)).
+      destruct (IHae1 ds) as [_ H_loop1].
+      rewrite <- (H_concat1 s (H_loop1 s H_s)).
         reflexivity.
   - intros n H_nat.
     rewrite -> (fold_unfold_evaluate_Minus ae1 ae2) in H_nat.
@@ -1362,13 +1347,13 @@ Proof.
         -- destruct (concatenation_of_two_list_bcis_with_ds
                        (compile_aux ae1)
                        (compile_aux ae2 ++ SUB :: nil) ds) as [H_concat1 _].
-           destruct (IHae1 ds) as [H_fdel1 _].
-           rewrite <- (H_concat1 (n1 :: ds) (H_fdel1 n1 (eq_refl (Expressible_nat n1)))).
+           destruct (IHae1 ds) as [H_loop1 _].
+           rewrite <- (H_concat1 (n1 :: ds) (H_loop1 n1 (eq_refl (Expressible_nat n1)))).
            destruct (concatenation_of_two_list_bcis_with_ds
                        (compile_aux ae2)
                        (SUB :: nil) (n1 :: ds)) as [H_concat2 _].
-           destruct (IHae2 (n1 :: ds)) as [H_fdel2 _].
-           rewrite <- (H_concat2 (n2 :: n1 :: ds) (H_fdel2 n2 (eq_refl (Expressible_nat n2)))).
+           destruct (IHae2 (n1 :: ds)) as [H_loop2 _].
+           rewrite <- (H_concat2 (n2 :: n1 :: ds) (H_loop2 n2 (eq_refl (Expressible_nat n2)))).
            rewrite -> (fold_unfold_fetch_decode_execute_loop_cons SUB nil (n2 :: n1 :: ds)).
            unfold decode_execute.
            rewrite -> H_n1_n2.
@@ -1387,13 +1372,13 @@ Proof.
         -- destruct (concatenation_of_two_list_bcis_with_ds
                        (compile_aux ae1)
                        (compile_aux ae2 ++ SUB :: nil) ds) as [H_concat1 _].
-           destruct (IHae1 ds) as [H_fdel1 _].
-           rewrite <- (H_concat1 (n1 :: ds) (H_fdel1 n1 (eq_refl (Expressible_nat n1)))).
+           destruct (IHae1 ds) as [H_loop1 _].
+           rewrite <- (H_concat1 (n1 :: ds) (H_loop1 n1 (eq_refl (Expressible_nat n1)))).
            destruct (concatenation_of_two_list_bcis_with_ds
                        (compile_aux ae2)
                        (SUB :: nil) (n1 :: ds)) as [H_concat2 _].
-           destruct (IHae2 (n1 :: ds)) as [H_fdel2 _].
-           rewrite <- (H_concat2 (n2 :: n1 :: ds) (H_fdel2 n2 (eq_refl (Expressible_nat n2)))).
+           destruct (IHae2 (n1 :: ds)) as [H_loop2 _].
+           rewrite <- (H_concat2 (n2 :: n1 :: ds) (H_loop2 n2 (eq_refl (Expressible_nat n2)))).
            rewrite -> (fold_unfold_fetch_decode_execute_loop_cons SUB nil (n2 :: n1 :: ds)).
            unfold decode_execute.
            rewrite -> H_n1_n2.
@@ -1404,19 +1389,19 @@ Proof.
       * destruct (concatenation_of_two_list_bcis_with_ds
                     (compile_aux ae1)
                     (compile_aux ae2 ++ SUB :: nil) ds) as [H_concat1 _].
-        destruct (IHae1 ds) as [H_fdel1 _].
-        rewrite <- (H_concat1 (n1 :: ds) (H_fdel1 n1 (eq_refl (Expressible_nat n1)))).
+        destruct (IHae1 ds) as [H_loop1 _].
+        rewrite <- (H_concat1 (n1 :: ds) (H_loop1 n1 (eq_refl (Expressible_nat n1)))).
         destruct (concatenation_of_two_list_bcis_with_ds
                     (compile_aux ae2)
                     (SUB :: nil) (n1 :: ds)) as [_ H_concat2].
-        destruct (IHae2 (n1 :: ds)) as [_ H_fdel2].
-        rewrite <- (H_concat2 s (H_fdel2 s H_s)).
+        destruct (IHae2 (n1 :: ds)) as [_ H_loop2].
+        rewrite <- (H_concat2 s (H_loop2 s H_s)).
         reflexivity.
     + destruct (concatenation_of_two_list_bcis_with_ds
                   (compile_aux ae1)
                   (compile_aux ae2 ++ SUB :: nil) ds) as [_ H_concat1].
-      destruct (IHae1 ds) as [_ H_fdel1].
-      rewrite <- (H_concat1 s (H_fdel1 s H_s)).
+      destruct (IHae1 ds) as [_ H_loop1].
+      rewrite <- (H_concat1 s (H_loop1 s H_s)).
       reflexivity.
 Qed.
 
