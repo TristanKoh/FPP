@@ -1,0 +1,4 @@
+Lemma foo :
+  forall b : bool,
+    b = b.
+  Proof.

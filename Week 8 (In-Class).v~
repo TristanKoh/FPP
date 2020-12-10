@@ -1,0 +1,29 @@
+Require Import Arith.
+
+Lemma quotient :
+  forall (n d : nat),
+      0 < d ->
+  exists (q r : nat),
+    (n = q * d + r) /\ (r < d).
+Proof.
+  intros n d.
+  intro H_0_less_than_d.
+  
+
+Fixpoint division (n d : nat) :=
+  match n with
+  | 0 => (0, 0)
+  | S n' => let (q, r) := division n' d in
+            match d with
+            | S r'
+
+
+Definition specification_of_division (division : forall (n d : nat) -> nat * nat) :=
+  (forall d : nat,
+      division 0 d = (0, 0))
+  /\
+  (forall (n' d : nat),
+      division (S n') d = ()).
+
+
+

@@ -8,9 +8,9 @@
 (* Three language processors for arithmetic expressions. *)
 
 (*
-   name:
-   student ID number:
-   e-mail address:
+   name: Bernard Boey Khai Chen
+   student ID number: A0191234L
+   e-mail address: bernard@u.yale-nus.edu.sg
 *)
 
 (* ********** *)
@@ -1073,18 +1073,18 @@ Theorem compile_satisfies_the_specification_of_compile :
   specification_of_compile compile.
 Proof.
   unfold specification_of_compile, compile.
-  intros compile_aux' S_compile_aux ae.
+  intros compile_aux' S_compile_aux' ae.
   Check (there_is_at_most_one_compile_aux
            compile_aux
            compile_aux'
            compile_aux_satisfies_the_specification_of_compile_aux
-           S_compile_aux
+           S_compile_aux'
            ae).
   rewrite -> (there_is_at_most_one_compile_aux
                 compile_aux
                 compile_aux'
                 compile_aux_satisfies_the_specification_of_compile_aux
-                S_compile_aux
+                S_compile_aux'
                 ae).
   reflexivity.
 Qed.
@@ -1112,12 +1112,6 @@ Fixpoint compile_aux_acc (ae : arithmetic_expression) (a : list byte_code_instru
     compile_aux_acc ae1 (compile_aux_acc ae2 (ADD :: a))
   | Minus ae1 ae2 =>
     compile_aux_acc ae1 (compile_aux_acc ae2 (SUB :: a))
-  end.
-
-Definition compile_acc (sp : source_program) : target_program :=
-  match sp with
-  | Source_program ae =>
-    Target_program (compile_aux_acc ae nil)
   end.
 
 Lemma fold_unfold_compile_aux_acc_Literal :
@@ -1154,7 +1148,7 @@ Lemma compile_aux_acc_lemma :
     compile_aux ae ++ a.
 Proof.
   intros ae.
-  induction ae as [ n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2]; intro a.
+  induction ae as [n | ae1 IHae1 ae2 IHae2 | ae1 IHae1 ae2 IHae2]; intro a.
   - rewrite -> (fold_unfold_compile_aux_acc_Literal n a).
     rewrite -> (fold_unfold_compile_aux_Literal n).
     rewrite -> (fold_unfold_append_cons (PUSH n) nil a).
@@ -1179,62 +1173,64 @@ Proof.
     rewrite -> (fold_unfold_append_cons SUB nil a).
     rewrite -> (fold_unfold_append_nil a).
     reflexivity.
-Qed.    
+Qed.
 
-Proposition compile_acc_satisfies_the_specification_of_compile :
+Theorem compile_aux_acc_satisfies_the_specification_of_compile_aux :
+  specification_of_compile_aux (fun ae : arithmetic_expression => compile_aux_acc ae nil).
+Proof.
+  unfold specification_of_compile_aux.
+  split.
+  - intro n.
+    exact (fold_unfold_compile_aux_acc_Literal n nil).
+  - split.
+    + intros ae1 ae2.
+      rewrite -> (fold_unfold_compile_aux_acc_Plus ae1 ae2 nil).
+      rewrite -> (compile_aux_acc_lemma ae2 (ADD :: nil)).
+      rewrite -> (compile_aux_acc_lemma ae1 (compile_aux ae2 ++ ADD :: nil)).
+      rewrite -> (compile_aux_acc_lemma ae1 nil).
+      rewrite -> (compile_aux_acc_lemma ae2 nil).
+      Search (_ ++ nil).
+      rewrite -> (List.app_nil_r (compile_aux ae1)).
+      rewrite -> (List.app_nil_r (compile_aux ae2)).
+      reflexivity.
+    + intros ae1 ae2.
+      rewrite -> (fold_unfold_compile_aux_acc_Minus ae1 ae2 nil).
+      rewrite -> (compile_aux_acc_lemma ae2 (SUB :: nil)).
+      rewrite -> (compile_aux_acc_lemma ae1 (compile_aux ae2 ++ SUB :: nil)).
+      rewrite -> (compile_aux_acc_lemma ae1 nil).
+      Search (_ ++ nil).
+      rewrite -> (List.app_nil_r (compile_aux ae1)).
+      rewrite -> (compile_aux_acc_lemma ae2 nil).
+      rewrite -> (List.app_nil_r (compile_aux ae2)).
+      reflexivity.
+Qed.
+
+
+Definition compile_acc (sp : source_program) : target_program :=
+  match sp with
+  | Source_program ae =>
+    Target_program (compile_aux_acc ae nil)
+  end.
+
+Theorem compile_acc_satisfies_the_specification_of_compile :
   specification_of_compile compile_acc.
 Proof.
   unfold specification_of_compile, compile_acc.
-  intros compile_aux' S_compile_aux ae.
-  assert (S_compile_aux' := S_compile_aux).
-  destruct S_compile_aux as [H_compile_aux_Literal [H_compile_aux_Plus H_compile_aux_Minus]].
-  case ae as [n | ae1 ae2 | ae1 ae2].
-  - rewrite -> (fold_unfold_compile_aux_acc_Literal n).
-    rewrite -> (H_compile_aux_Literal n).
-    reflexivity.
-  - rewrite -> (fold_unfold_compile_aux_acc_Plus ae1 ae2 nil).
-    rewrite -> (H_compile_aux_Plus ae1 ae2).
-    Check (there_is_at_most_one_compile_aux).
-    Check (there_is_at_most_one_compile_aux
-             compile_aux
-             compile_aux'
-             compile_aux_satisfies_the_specification_of_compile_aux
-             S_compile_aux'
-             ae1).
-    rewrite -> (there_is_at_most_one_compile_aux
-                  compile_aux'
-                  compile_aux
-                  S_compile_aux'
-                  compile_aux_satisfies_the_specification_of_compile_aux
-                  ae1).
-    rewrite -> (there_is_at_most_one_compile_aux
-                  compile_aux'
-                  compile_aux
-                  S_compile_aux'
-                  compile_aux_satisfies_the_specification_of_compile_aux
-                  ae2).
-    rewrite -> (compile_aux_acc_lemma ae2 (ADD :: nil)).
-    rewrite -> (compile_aux_acc_lemma ae1 (compile_aux ae2 ++ ADD :: nil)).
-    reflexivity.
-  - rewrite -> (fold_unfold_compile_aux_acc_Minus ae1 ae2 nil).
-    rewrite -> (H_compile_aux_Minus ae1 ae2).
-    rewrite -> (there_is_at_most_one_compile_aux
-                  compile_aux'
-                  compile_aux
-                  S_compile_aux'
-                  compile_aux_satisfies_the_specification_of_compile_aux
-                  ae1).
-    rewrite -> (there_is_at_most_one_compile_aux
-                  compile_aux'
-                  compile_aux
-                  S_compile_aux'
-                  compile_aux_satisfies_the_specification_of_compile_aux
-                  ae2).
-    rewrite -> (compile_aux_acc_lemma ae2 (SUB :: nil)).
-    rewrite -> (compile_aux_acc_lemma ae1 (compile_aux ae2 ++ SUB :: nil)).
-    reflexivity.
+  intros compile_aux' S_compile_aux' ae.
+  Check (there_is_at_most_one_compile_aux
+           (fun ae : arithmetic_expression => compile_aux_acc ae nil)
+           compile_aux'
+           compile_aux_acc_satisfies_the_specification_of_compile_aux
+           S_compile_aux'
+           ae).
+  rewrite -> (there_is_at_most_one_compile_aux
+                (fun ae : arithmetic_expression => compile_aux_acc ae nil)
+                compile_aux'
+                compile_aux_acc_satisfies_the_specification_of_compile_aux
+                S_compile_aux'
+                ae).
+  reflexivity.
 Qed.
-
 
 Proposition compile_and_compile_acc_are_equivalent :
   forall sp : source_program,
@@ -1336,7 +1332,7 @@ Proof.
                   (compile_aux ae2 ++ ADD :: nil) ds) as [_ H_concat1].
       destruct (IHae1 ds) as [_ H_loop1].
       rewrite <- (H_concat1 s (H_loop1 s H_s)).
-        reflexivity.
+      reflexivity.
   - intros n H_nat.
     rewrite -> (fold_unfold_evaluate_Minus ae1 ae2) in H_nat.
     rewrite -> (fold_unfold_compile_aux_Minus ae1 ae2).
@@ -1362,11 +1358,11 @@ Proof.
            rewrite -> H_nat.
            reflexivity.
       * discriminate H_nat.
-      + discriminate H_nat.
+    + discriminate H_nat.
   - intros s H_s.
-      rewrite -> (fold_unfold_evaluate_Minus ae1 ae2) in H_s.
-      rewrite -> (fold_unfold_compile_aux_Minus ae1 ae2).
-      case (evaluate ae1) as [n1 | s1] eqn:H_eval_ae1.
+    rewrite -> (fold_unfold_evaluate_Minus ae1 ae2) in H_s.
+    rewrite -> (fold_unfold_compile_aux_Minus ae1 ae2).
+    case (evaluate ae1) as [n1 | s1] eqn:H_eval_ae1.
     + case (evaluate ae2) as [n2 | s2] eqn:H_eval_ae2.
       * case (n1 <? n2) eqn:H_n1_n2.
         -- destruct (concatenation_of_two_list_bcis_with_ds
@@ -1515,7 +1511,7 @@ Proof.
     rewrite -> (fold_unfold_append_cons bci bcis1 bcis2).
     rewrite -> (fold_unfold_verify_aux_cons bci (bcis1 ++ bcis2) n).
     rewrite -> (fold_unfold_verify_aux_cons bci bcis1 n) in H_verify_aux.
-    case bci as [ n'' | | ].
+    case bci as [n'' | | ].
     + rewrite -> (IHbcis bcis2 (S n) n' H_verify_aux).
       reflexivity.
     + case n as [ | n''].
@@ -1574,7 +1570,7 @@ Theorem the_compiler_emits_well_behaved_code :
 Proof.
   intros [ae].
   unfold compile, verify.
-  case ae as [n | ae1 ae2 | ae1 ae2]; unfold verify.
+  case ae as [n | ae1 ae2 | ae1 ae2].
   - rewrite -> (fold_unfold_compile_aux_Literal n).
     rewrite -> (fold_unfold_verify_aux_cons (PUSH n) nil 0).
     rewrite -> (fold_unfold_verify_aux_nil 1).
@@ -1596,10 +1592,6 @@ Proof.
     rewrite -> (fold_unfold_verify_aux_nil 1).
     reflexivity.
   - rewrite -> (fold_unfold_compile_aux_Minus ae1 ae2).
-    Check (concatenation_of_two_list_bcis_with_n
-             (compile_aux ae1)
-             (compile_aux ae2 ++ SUB :: nil) 0 1).
-    Check (the_compiler_emits_well_behaved_code_aux ae1 0).
     rewrite -> (concatenation_of_two_list_bcis_with_n
                   (compile_aux ae1)
                   (compile_aux ae2 ++ SUB :: nil) 0 1
